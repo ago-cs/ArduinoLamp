@@ -42,7 +42,7 @@
 // ============= ДЛЯ РАЗРАБОТЧИКОВ =============
 #define LED_PIN 2             // пин ленты
 #define BTN_PIN 4
-#define MODE_AMOUNT 20
+#define MODE_AMOUNT 21
 #define NUM_LEDS WIDTH * HEIGHT
 #define SEGMENTS 1            // диодов в одном "пикселе" (для создания матрицы из кусков ленты)
 
