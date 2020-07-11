@@ -59,7 +59,11 @@ void effectsTick() {
          break;
         case 25: ballsRoutine();
          break;
-        case 26: fire2012WithPalette();
+        case 26: fire2012WithPalette4in1();
+         break;
+        case 27: twinklesRoutine();
+         break;
+        case 28: PrismataRoutine();
          break; 
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба

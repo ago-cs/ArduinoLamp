@@ -17,15 +17,17 @@ void drawPixelXY(int8_t x, int8_t y, CRGB color) {
 }
 
 // функция получения цвета пикселя по его номеру
-uint32_t getPixColor(int thisSegm) {
-  int thisPixel = thisSegm * SEGMENTS;
-  if (thisPixel < 0 || thisPixel > NUM_LEDS - 1) return 0;
-  return (((uint32_t)leds[thisPixel].r << 16) | ((long)leds[thisPixel].g << 8 ) | (long)leds[thisPixel].b);
+uint32_t getPixColor(uint32_t thisSegm)
+{
+  uint32_t thisPixel = thisSegm * SEGMENTS;
+  if (thisPixel > NUM_LEDS - 1) return 0;
+  return (((uint32_t)leds[thisPixel].r << 16) | ((uint32_t)leds[thisPixel].g << 8 ) | (uint32_t)leds[thisPixel].b);
 }
 
 // функция получения цвета пикселя в матрице по его координатам
-uint32_t getPixColorXY(int8_t x, int8_t y) {
-  return getPixColor(getPixelNumber(x, y));
+uint32_t getPixColorXY(uint8_t x, uint8_t y)
+{
+  return getPixColor(XY(x, y));
 }
 
 // **************** НАСТРОЙКА МАТРИЦЫ ****************
@@ -77,11 +79,16 @@ uint32_t getPixColorXY(int8_t x, int8_t y) {
 
 #endif
 
-// получить номер пикселя в ленте по координатам
-uint16_t getPixelNumber(int8_t x, int8_t y) {
-  if ((THIS_Y % 2 == 0) || MATRIX_TYPE) {               // если чётная строка
+uint16_t XY(uint8_t x, uint8_t y)
+{
+  if (!(THIS_Y & 0x01) || MATRIX_TYPE)               // Even rows run forwards
     return (THIS_Y * _WIDTH + THIS_X);
-  } else {                                              // если нечётная строка
-    return (THIS_Y * _WIDTH + _WIDTH - THIS_X - 1);
-  }
+  else                                                  
+    return (THIS_Y * _WIDTH + _WIDTH - THIS_X - 1);  // Odd rows run backwards
+}
+
+// оставлено для совместимости со эффектами из старых прошивок
+uint16_t getPixelNumber(uint8_t x, uint8_t y)
+{
+  return XY(x, y);
 }

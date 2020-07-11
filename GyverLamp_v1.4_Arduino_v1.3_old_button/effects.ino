@@ -48,35 +48,50 @@ void setCurrentPalette(){
       if (modes[currentMode].scale > 100U) modes[currentMode].scale = 100U; // чтобы не было проблем при прошивке без очистки памяти
       curPalette = palette_arr[(uint8_t)(modes[currentMode].scale/100.0F*((sizeof(palette_arr)/sizeof(TProgmemRGBPalette16 *))-0.01F))];
 }
+CRGBPalette16 palette;
+CRGB _pulse_color;
 // --------------------------------- конфетти ------------------------------------
-void sparklesRoutine() {
-  for (byte i = 0; i < modes[0].scale; i++) {
-    byte x = random(0, WIDTH);
-    byte y = random(0, HEIGHT);
-    if (getPixColorXY(x, y) == 0)
-      leds[getPixelNumber(x, y)] = CHSV(random(0, 255), 255, 255);
+#define FADE_OUT_SPEED        (70U)                         // скорость затухания
+void sparklesRoutine()
+{
+  for (uint8_t i = 0; i < modes[currentMode].scale; i++)
+  {
+    uint8_t x = random(0U, WIDTH);
+    uint8_t y = random(0U, HEIGHT);
+    if (getPixColorXY(x, y) == 0U)
+    {
+      leds[XY(x, y)] = CHSV(random(0U, 255U), 255U, 255U);
+    }
   }
-  fader(70);
+  fader(FADE_OUT_SPEED);
 }
 
 // функция плавного угасания цвета для всех пикселей
-void fader(byte step) {
-  for (byte i = 0; i < WIDTH; i++) {
-    for (byte j = 0; j < HEIGHT; j++) {
+void fader(uint8_t step)
+{
+  for (uint8_t i = 0U; i < WIDTH; i++)
+  {
+    for (uint8_t j = 0U; j < HEIGHT; j++)
+    {
       fadePixel(i, j, step);
     }
   }
 }
-void fadePixel(byte i, byte j, byte step) {     // новый фейдер
-  int pixelNum = getPixelNumber(i, j);
-  if (getPixColor(pixelNum) == 0) return;
 
-  if (leds[pixelNum].r >= 30 ||
-      leds[pixelNum].g >= 30 ||
-      leds[pixelNum].b >= 30) {
+void fadePixel(uint8_t i, uint8_t j, uint8_t step)          // новый фейдер
+{
+  int32_t pixelNum = XY(i, j);
+  if (getPixColor(pixelNum) == 0U) return;
+
+  if (leds[pixelNum].r >= 30U ||
+      leds[pixelNum].g >= 30U ||
+      leds[pixelNum].b >= 30U)
+  {
     leds[pixelNum].fadeToBlackBy(step);
-  } else {
-    leds[pixelNum] = 0;
+  }
+  else
+  {
+    leds[pixelNum] = 0U;
   }
 }
 
@@ -304,58 +319,6 @@ void whiteLamp() {
     }
   }
 }
-
-
-//// ----------------------------- СВЕТЛЯКИ ------------------------------ в ардуине под него не хватет пямяти
-//#define LIGHTERS_AM 100
-//int lightersPos[2][LIGHTERS_AM];
-//int8_t lightersSpeed[2][LIGHTERS_AM];
-//CHSV lightersColor[LIGHTERS_AM];
-//byte loopCounter;
-//
-//int angle[LIGHTERS_AM];
-//int speedV[LIGHTERS_AM];
-//int8_t angleSpeed[LIGHTERS_AM];
-//
-//void lightersRoutine() {
-//  if (loadingFlag) {
-//    loadingFlag = false;
-//    randomSeed(millis());
-//    for (byte i = 0; i < LIGHTERS_AM; i++) {
-//      lightersPos[0][i] = random(0, WIDTH * 10);
-//      lightersPos[1][i] = random(0, HEIGHT * 10);
-//      lightersSpeed[0][i] = random(-10, 10);
-//      lightersSpeed[1][i] = random(-10, 10);
-//      lightersColor[i] = CHSV(random(0, 255), 255, 255);
-//    }
-//  }
-//  FastLED.clear();
-//  if (++loopCounter > 20) loopCounter = 0;
-//  for (byte i = 0; i < modes[17].scale; i++) {
-//    if (loopCounter == 0) {     // меняем скорость каждые 255 отрисовок
-//      lightersSpeed[0][i] += random(-3, 4);
-//      lightersSpeed[1][i] += random(-3, 4);
-//      lightersSpeed[0][i] = constrain(lightersSpeed[0][i], -20, 20);
-//      lightersSpeed[1][i] = constrain(lightersSpeed[1][i], -20, 20);
-//    }
-//
-//    lightersPos[0][i] += lightersSpeed[0][i];
-//    lightersPos[1][i] += lightersSpeed[1][i];
-//
-//    if (lightersPos[0][i] < 0) lightersPos[0][i] = (WIDTH - 1) * 10;
-//    if (lightersPos[0][i] >= WIDTH * 10) lightersPos[0][i] = 0;
-//
-//    if (lightersPos[1][i] < 0) {
-//      lightersPos[1][i] = 0;
-//      lightersSpeed[1][i] = -lightersSpeed[1][i];
-//    }
-//    if (lightersPos[1][i] >= (HEIGHT - 1) * 10) {
-//      lightersPos[1][i] = (HEIGHT - 1) * 10;
-//      lightersSpeed[1][i] = -lightersSpeed[1][i];
-//    }
-//    drawPixelXY(lightersPos[0][i] / 10, lightersPos[1][i] / 10, lightersColor[i]);
-//  }
-//}
 //-------------Шторм,Метель-----------------
 
 #define e_sns_DENSE (32U) // плотность снега - меньше = плотнее
@@ -494,7 +457,8 @@ void MetaBallsRoutine() {
 int16_t coordB[2U];
 int8_t vectorB[2U];
 CRGB ballColor;
-int8_t ballSize;
+//int8_t deltaValue; //ballSize;
+
 void ballRoutine()
 {
   if (loadingFlag)
@@ -506,11 +470,24 @@ void ballRoutine()
     {
       coordB[i] = WIDTH / 2 * 10;
       vectorB[i] = random(8, 20);
-      ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
     }
+    deltaValue = map(modes[currentMode].scale * 2.55, 0U, 255U, 2U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 2));
+    ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+//    _pulse_color = CHSV(random(0, 9) * 28, 255U, 255U);
   }
 
-  ballSize = map(modes[currentMode].scale, 0U, 255U, 2U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 2));
+//  if (!(modes[currentMode].Scale & 0x01))
+//  {
+//    hue += (modes[currentMode].Scale - 1U) % 11U * 8U + 1U;
+
+//    ballColor = CHSV(hue, 255U, 255U);
+//  }
+ 
+  if ((modes[currentMode].scale & 0x01))
+    for (uint8_t i = 0U; i < deltaValue; i++)
+      for (uint8_t j = 0U; j < deltaValue; j++)
+        leds[XY(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = _pulse_color;
+
   for (uint8_t i = 0U; i < 2U; i++)
   {
     coordB[i] += vectorB[i];
@@ -518,36 +495,36 @@ void ballRoutine()
     {
       coordB[i] = 0;
       vectorB[i] = -vectorB[i];
-      if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+      if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U); // if (RANDOM_COLOR && (modes[currentMode].Scale & 0x01))
       //vectorB[i] += random(0, 6) - 3;
     }
   }
-  if (coordB[0U] > (int16_t)((WIDTH - ballSize) * 10))
+  if (coordB[0U] > (int16_t)((WIDTH - deltaValue) * 10))
   {
-    coordB[0U] = (WIDTH - ballSize) * 10;
+    coordB[0U] = (WIDTH - deltaValue) * 10;
     vectorB[0U] = -vectorB[0U];
     if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
     //vectorB[0] += random(0, 6) - 3;
   }
-  if (coordB[1U] > (int16_t)((HEIGHT - ballSize) * 10))
+  if (coordB[1U] > (int16_t)((HEIGHT - deltaValue) * 10))
   {
-    coordB[1U] = (HEIGHT - ballSize) * 10;
+    coordB[1U] = (HEIGHT - deltaValue) * 10;
     vectorB[1U] = -vectorB[1U];
-    if (RANDOM_COLOR)
-    {
-      ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-    }
+    if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
     //vectorB[1] += random(0, 6) - 3;
   }
-  FastLED.clear();
-  for (uint8_t i = 0U; i < ballSize; i++)
-  {
-    for (uint8_t j = 0U; j < ballSize; j++)
-    {
-      leds[getPixelNumber(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = ballColor;
-    }
-  }
+  
+//  if (modes[currentMode].Scale & 0x01)
+//    dimAll(135U);
+//    dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 24U);
+//  else
+    FastLED.clear();
+     
+  for (uint8_t i = 0U; i < deltaValue; i++)
+    for (uint8_t j = 0U; j < deltaValue; j++)
+      leds[XY(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = ballColor;
 }
+
 //-----------------------------------------------
 #define BALLS_AMOUNT          (3U)                          // количество "шариков"
 #define CLEAR_PATH            (1U)                          // очищать путь
@@ -572,7 +549,9 @@ void ballsRoutine()
       coord[j][1U] = HEIGHT / 2 * 10;
       random(0, 2) ? sign = 1 : sign = -1;
       vector[j][1U] = random(4, 15) * sign;
-      ballColors[j] = CHSV(random(0, 9) * 28, 255U, 255U);
+      //ballColors[j] = CHSV(random(0, 9) * 28, 255U, 255U);
+      // цвет зависит от масштаба
+      ballColors[j] = CHSV((modes[currentMode].scale * (j + 1)) % 256U, 255U, 255U);
     }
   }
 
@@ -609,46 +588,157 @@ void ballsRoutine()
       coord[j][1U] = (HEIGHT - 1) * 10;
       vector[j][1U] = -vector[j][1U];
     }
-    leds[getPixelNumber(coord[j][0U] / 10, coord[j][1U] / 10)] =  ballColors[j];
+    leds[XY(coord[j][0U] / 10, coord[j][1U] / 10)] =  ballColors[j];
   }
 }
+
 //-------------------------------------------------
-void fire2012WithPalette(){
-  #define COOLINGNEW 32
-  #define SPARKINGNEW 80
-//    bool fire_water = modes[currentMode].Scale <= 50;
-//    uint8_t COOLINGNEW = fire_water ? modes[currentMode].Scale * 2  + 20 : (100 - modes[currentMode].Scale ) *  2 + 20 ;
-//    uint8_t COOLINGNEW = modes[currentMode].Scale * 2  + 20 ;
-    // Array of temperature readings at each simulation cell
-    static byte heat[WIDTH][HEIGHT];
+extern const TProgmemRGBPalette16 WaterfallColors4in1_p FL_PROGMEM = {
+  CRGB::Black,
+  CRGB::DarkSlateGray,
+  CRGB::DimGray,
+  CRGB::LightSlateGray,
 
-    for(uint8_t x = 0; x < WIDTH; x++) {
-      // Step 1.  Cool down every cell a little
-      for (int i = 0; i < HEIGHT; i++) {
-          heat[x][i] = qsub8(heat[x][i], random8(0, ((COOLINGNEW * 10) / HEIGHT) + 2));
-      }
+  CRGB::DimGray,
+  CRGB::DarkSlateGray,
+  CRGB::Silver,
+  CRGB::DarkCyan,
 
-      // Step 2.  Heat from each cell drifts 'up' and diffuses a little
-      for (int k = HEIGHT - 1; k >= 2; k--) {
-          heat[x][k] = (heat[x][k - 1] + heat[x][k - 2] + heat[x][k - 2]) / 3;
-      }
+  CRGB::Lavender,
+  CRGB::Silver,
+  CRGB::Azure,
+  CRGB::LightGrey,
 
-      // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
-      if (random8() < SPARKINGNEW) {
-          int y = random8(2);
-          heat[x][y] = qadd8(heat[x][y], random8(160, 255));
-      }
+  CRGB::GhostWhite,
+  CRGB::Silver,
+  CRGB::White,
+  CRGB::RoyalBlue
+};
 
-      // Step 4.  Map from heat cells to LED colors
-      for (int j = 0; j < HEIGHT; j++) {
-          // Scale the heat value from 0-255 down to 0-240
-          // for best results with color palettes.
-          byte colorindex = scale8(heat[x][j], 240);
-          if (modes[currentMode].scale == 100)
-            leds[getPixelNumber(x, (HEIGHT - 1) - j)] = ColorFromPalette(WaterfallColors_p, colorindex);
-          else
-            leds[getPixelNumber(x, (HEIGHT - 1) - j)] = ColorFromPalette(CRGBPalette16( CRGB::Black, CHSV(modes[currentMode].scale * 2.57, 255U, 255U) , CHSV(modes[currentMode].scale* 2.5, 128U, 255U) , CRGB::White), colorindex);
-            //leds[getPixelNumber(x, (HEIGHT - 1) - j)] = ColorFromPalette(fire_water ? HeatColors_p : OceanColors_p, colorindex);
+#define COOLINGNEW 32
+#define SPARKINGNEW 80 
+void fire2012WithPalette4in1() {
+  uint8_t rCOOLINGNEW = constrain((uint16_t)(modes[currentMode].scale % 16) * 32 / HEIGHT + 16, 1, 255) ;
+  // Array of temperature readings at each simulation cell
+  //static byte heat[WIDTH][HEIGHT]; будет noise3d[0][WIDTH][HEIGHT]
+
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    // Step 1.  Cool down every cell a little
+    for (unsigned int i = 0; i < HEIGHT; i++) {
+      //noise3d[0][x][i] = qsub8(noise3d[0][x][i], random8(0, ((rCOOLINGNEW * 10) / HEIGHT) + 2));
+      noise3d[0][x][i] = qsub8(noise3d[0][x][i], random8(0, rCOOLINGNEW));
+    }
+
+    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+    for (int k = HEIGHT - 1; k >= 2; k--) {
+      noise3d[0][x][k] = (noise3d[0][x][k - 1] + noise3d[0][x][k - 2] + noise3d[0][x][k - 2]) / 3;
+    }
+
+    // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+    if (random8() < SPARKINGNEW) {
+      int y = random8(2);
+      noise3d[0][x][y] = qadd8(noise3d[0][x][y], random8(160, 255));
+    }
+
+    // Step 4.  Map from heat cells to LED colors
+    for (unsigned int j = 0; j < HEIGHT; j++) {
+      // Scale the heat value from 0-255 down to 0-240
+      // for best results with color palettes.
+      byte colorindex = scale8(noise3d[0][x][j], 240);
+      if  (modes[currentMode].scale < 16) {            // Lavafall
+        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(LavaColors_p, colorindex);
+      } else if (modes[currentMode].scale < 32) {      // Firefall
+        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(HeatColors_p, colorindex);
+      } else if (modes[currentMode].scale < 48) {      // Waterfall
+        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(WaterfallColors4in1_p, colorindex);
+      } else if (modes[currentMode].scale < 64) {      // Skyfall
+        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(CloudColors_p, colorindex);
+      } else if (modes[currentMode].scale < 80) {      // Forestfall
+        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(ForestColors_p, colorindex);
+      } else if (modes[currentMode].scale < 96) {      // Rainbowfall
+        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(RainbowColors_p, colorindex);
+      } else {                      // Aurora
+        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(RainbowStripeColors_p, colorindex);
       }
     }
+  }
+}
+//---------------------------------------------
+
+#define TWINKLES_SPEEDS 4     // всего 4 варианта скоростей мерцания
+#define TWINKLES_MULTIPLIER 6 // слишком медленно, если на самой медленной просто по единичке к яркости добавлять
+
+void twinklesRoutine(){
+    if (loadingFlag)
+    {
+      loadingFlag = false;
+      setCurrentPalette();
+      hue = 0U;
+      deltaValue = (modes[currentMode].scale - 1U) % 11U + 1U;  // вероятность пикселя загореться от 1/1 до 1/11
+      for (uint32_t idx=0; idx < NUM_LEDS; idx++) {
+        if (random8(deltaValue) == 0){
+          ledsbuff[idx].r = random8();                          // оттенок пикселя
+          ledsbuff[idx].g = random8(1, TWINKLES_SPEEDS * 2 +1); // скорость и направление (нарастает 1-4 или угасает 5-8)
+          ledsbuff[idx].b = random8();                          // яркость
+        }
+        else
+          ledsbuff[idx] = 0;                                    // всё выкл
+      }
+    }
+    for (uint32_t idx=0; idx < NUM_LEDS; idx++) {
+      if (ledsbuff[idx].b == 0){
+        if (random8(deltaValue) == 0 && hue > 0){  // если пиксель ещё не горит, зажигаем каждый ХЗй
+          ledsbuff[idx].r = random8();                          // оттенок пикселя
+          ledsbuff[idx].g = random8(1, TWINKLES_SPEEDS +1);     // скорость и направление (нарастает 1-4, но не угасает 5-8)
+          ledsbuff[idx].b = ledsbuff[idx].g;                    // яркость
+          hue--; // уменьшаем количество погасших пикселей
+        }
+      }
+      else if (ledsbuff[idx].g <= TWINKLES_SPEEDS){             // если нарастание яркости
+        if (ledsbuff[idx].b > 255U - ledsbuff[idx].g - TWINKLES_MULTIPLIER){            // если досигнут максимум
+          ledsbuff[idx].b = 255U;
+          ledsbuff[idx].g = ledsbuff[idx].g + TWINKLES_SPEEDS;
+        }
+        else
+          ledsbuff[idx].b = ledsbuff[idx].b + ledsbuff[idx].g + TWINKLES_MULTIPLIER;
+      }
+      else {                                                    // если угасание яркости
+        if (ledsbuff[idx].b <= ledsbuff[idx].g - TWINKLES_SPEEDS + TWINKLES_MULTIPLIER){// если досигнут минимум
+          ledsbuff[idx].b = 0;                                  // всё выкл
+          hue++; // считаем количество погасших пикселей
+        }
+        else
+          ledsbuff[idx].b = ledsbuff[idx].b - ledsbuff[idx].g + TWINKLES_SPEEDS - TWINKLES_MULTIPLIER;
+      }
+      if (ledsbuff[idx].b == 0)
+        leds[idx] = 0U;
+      else
+        leds[idx] = ColorFromPalette(*curPalette, ledsbuff[idx].r, ledsbuff[idx].b);
+    }
+}
+//-----------------------------------------------------
+
+void PrismataRoutine() {
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette();
+  } 
+  
+  EVERY_N_MILLIS(33) {
+    hue++; // используем переменную сдвига оттенка из функций радуги, чтобы не занимать память
+  }
+  blurScreen(20); // @Palpalych посоветовал делать размытие
+  dimAll(255U - (modes[currentMode].scale - 1U) % 11U * 3U);
+
+  for (int x = 0; x < WIDTH; x++)
+  {
+    //uint8_t y = beatsin8(x + 1, 0, HEIGHT-1); // это я попытался распотрошить данную функцию до исходного кода и вставить в неё регулятор скорости
+    // вместо 28 в оригинале было 280, умножения на .Speed не было, а вместо >>17 было (<<8)>>24. короче, оригинальная скорость достигается при бегунке .Speed=20
+    uint8_t beat = (GET_MILLIS() * (accum88(x + 1)) * 28 * modes[currentMode].speed) >> 17;
+    uint8_t y = scale8(sin8(beat), HEIGHT-1);
+    //и получилось!!!
+    
+    drawPixelXY(x, y, ColorFromPalette(*curPalette, x * 7 + hue));
+  }
 }
