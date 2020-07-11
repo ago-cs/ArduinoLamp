@@ -489,3 +489,166 @@ void MetaBallsRoutine() {
     }
   }
 }
+//----------------------------------------
+#define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке
+int16_t coordB[2U];
+int8_t vectorB[2U];
+CRGB ballColor;
+int8_t ballSize;
+void ballRoutine()
+{
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    //FastLED.clear();
+
+    for (uint8_t i = 0U; i < 2U; i++)
+    {
+      coordB[i] = WIDTH / 2 * 10;
+      vectorB[i] = random(8, 20);
+      ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+    }
+  }
+
+  ballSize = map(modes[currentMode].scale, 0U, 255U, 2U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 2));
+  for (uint8_t i = 0U; i < 2U; i++)
+  {
+    coordB[i] += vectorB[i];
+    if (coordB[i] < 0)
+    {
+      coordB[i] = 0;
+      vectorB[i] = -vectorB[i];
+      if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+      //vectorB[i] += random(0, 6) - 3;
+    }
+  }
+  if (coordB[0U] > (int16_t)((WIDTH - ballSize) * 10))
+  {
+    coordB[0U] = (WIDTH - ballSize) * 10;
+    vectorB[0U] = -vectorB[0U];
+    if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+    //vectorB[0] += random(0, 6) - 3;
+  }
+  if (coordB[1U] > (int16_t)((HEIGHT - ballSize) * 10))
+  {
+    coordB[1U] = (HEIGHT - ballSize) * 10;
+    vectorB[1U] = -vectorB[1U];
+    if (RANDOM_COLOR)
+    {
+      ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+    }
+    //vectorB[1] += random(0, 6) - 3;
+  }
+  FastLED.clear();
+  for (uint8_t i = 0U; i < ballSize; i++)
+  {
+    for (uint8_t j = 0U; j < ballSize; j++)
+    {
+      leds[getPixelNumber(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = ballColor;
+    }
+  }
+}
+//-----------------------------------------------
+#define BALLS_AMOUNT          (3U)                          // количество "шариков"
+#define CLEAR_PATH            (1U)                          // очищать путь
+#define BALL_TRACK            (1U)                          // (0 / 1) - вкл/выкл следы шариков
+#define TRACK_STEP            (70U)                         // длина хвоста шарика (чем больше цифра, тем хвост короче)
+int16_t coord[BALLS_AMOUNT][2U];
+int8_t vector[BALLS_AMOUNT][2U];
+CRGB ballColors[BALLS_AMOUNT];
+void ballsRoutine()
+{
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+
+    for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
+    {
+      int8_t sign;
+      // забиваем случайными данными
+      coord[j][0U] = WIDTH / 2 * 10;
+      random(0, 2) ? sign = 1 : sign = -1;
+      vector[j][0U] = random(4, 15) * sign;
+      coord[j][1U] = HEIGHT / 2 * 10;
+      random(0, 2) ? sign = 1 : sign = -1;
+      vector[j][1U] = random(4, 15) * sign;
+      ballColors[j] = CHSV(random(0, 9) * 28, 255U, 255U);
+    }
+  }
+
+  if (!BALL_TRACK)                                          // режим без следов шариков
+  {
+    FastLED.clear();
+  }
+  else                                                      // режим со следами
+  {
+    fader(TRACK_STEP);
+  }
+
+  // движение шариков
+  for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
+  {
+    // движение шариков
+    for (uint8_t i = 0U; i < 2U; i++)
+    {
+      coord[j][i] += vector[j][i];
+      if (coord[j][i] < 0)
+      {
+        coord[j][i] = 0;
+        vector[j][i] = -vector[j][i];
+      }
+    }
+
+    if (coord[j][0U] > (int16_t)((WIDTH - 1) * 10))
+    {
+      coord[j][0U] = (WIDTH - 1) * 10;
+      vector[j][0U] = -vector[j][0U];
+    }
+    if (coord[j][1U] > (int16_t)((HEIGHT - 1) * 10))
+    {
+      coord[j][1U] = (HEIGHT - 1) * 10;
+      vector[j][1U] = -vector[j][1U];
+    }
+    leds[getPixelNumber(coord[j][0U] / 10, coord[j][1U] / 10)] =  ballColors[j];
+  }
+}
+//-------------------------------------------------
+void fire2012WithPalette(){
+  #define COOLINGNEW 32
+  #define SPARKINGNEW 80
+//    bool fire_water = modes[currentMode].Scale <= 50;
+//    uint8_t COOLINGNEW = fire_water ? modes[currentMode].Scale * 2  + 20 : (100 - modes[currentMode].Scale ) *  2 + 20 ;
+//    uint8_t COOLINGNEW = modes[currentMode].Scale * 2  + 20 ;
+    // Array of temperature readings at each simulation cell
+    static byte heat[WIDTH][HEIGHT];
+
+    for(uint8_t x = 0; x < WIDTH; x++) {
+      // Step 1.  Cool down every cell a little
+      for (int i = 0; i < HEIGHT; i++) {
+          heat[x][i] = qsub8(heat[x][i], random8(0, ((COOLINGNEW * 10) / HEIGHT) + 2));
+      }
+
+      // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+      for (int k = HEIGHT - 1; k >= 2; k--) {
+          heat[x][k] = (heat[x][k - 1] + heat[x][k - 2] + heat[x][k - 2]) / 3;
+      }
+
+      // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+      if (random8() < SPARKINGNEW) {
+          int y = random8(2);
+          heat[x][y] = qadd8(heat[x][y], random8(160, 255));
+      }
+
+      // Step 4.  Map from heat cells to LED colors
+      for (int j = 0; j < HEIGHT; j++) {
+          // Scale the heat value from 0-255 down to 0-240
+          // for best results with color palettes.
+          byte colorindex = scale8(heat[x][j], 240);
+          if (modes[currentMode].scale == 100)
+            leds[getPixelNumber(x, (HEIGHT - 1) - j)] = ColorFromPalette(WaterfallColors_p, colorindex);
+          else
+            leds[getPixelNumber(x, (HEIGHT - 1) - j)] = ColorFromPalette(CRGBPalette16( CRGB::Black, CHSV(modes[currentMode].scale * 2.57, 255U, 255U) , CHSV(modes[currentMode].scale* 2.5, 128U, 255U) , CRGB::White), colorindex);
+            //leds[getPixelNumber(x, (HEIGHT - 1) - j)] = ColorFromPalette(fire_water ? HeatColors_p : OceanColors_p, colorindex);
+      }
+    }
+}

@@ -54,6 +54,12 @@ void effectsTick() {
         case 22: SinusoidRoutine();
          break;
         case 23: MetaBallsRoutine();
+         break;
+        case 24: ballRoutine();
+         break;
+        case 25: ballsRoutine();
+         break;
+        case 26: fire2012WithPalette();
          break; 
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
