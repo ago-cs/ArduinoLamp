@@ -241,7 +241,7 @@ void rainbowDiagonalRoutine()
 }
 // ---------------------------------------- ЦВЕТА ------------------------------------------
 void colorsRoutine() {
-  hue += modes[4].scale;
+  hue += modes[16].scale;
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CHSV(hue, 255, 255);
   }
@@ -250,7 +250,7 @@ void colorsRoutine() {
 // --------------------------------- ЦВЕТ ------------------------------------
 void colorRoutine() {
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV(modes[14].scale * 2.5, 255, 255);
+    leds[i] = CHSV(modes[15].scale * 2.5, 255, 255);
   }
 }
 
@@ -266,7 +266,7 @@ void snowRoutine() {
   for (byte x = 0; x < WIDTH; x++) {
     // заполняем случайно верхнюю строку
     // а также не даём двум блокам по вертикали вместе быть
-    if (getPixColorXY(x, HEIGHT - 2) == 0 && (random(0, modes[15].scale) == 0))
+    if (getPixColorXY(x, HEIGHT - 2) == 0 && (random(0, modes[19].scale) == 0))
       drawPixelXY(x, HEIGHT - 1, 0xE0FFFF - 0x101010 * random(0, 4));
     else
       drawPixelXY(x, HEIGHT - 1, 0x000000);
@@ -279,7 +279,7 @@ void matrixRoutine() {
     // заполняем случайно верхнюю строку
     uint32_t thisColor = getPixColorXY(x, HEIGHT - 1);
     if (thisColor == 0)
-      drawPixelXY(x, HEIGHT - 1, 0x00FF00 * (random(0, modes[16].scale) == 0));
+      drawPixelXY(x, HEIGHT - 1, 0x00FF00 * (random(0, modes[17].scale) == 0));
     else if (thisColor < 0x002000)
       drawPixelXY(x, HEIGHT - 1, 0);
     else
@@ -297,7 +297,7 @@ void matrixRoutine() {
 // ------------------------------ БЕЛАЯ ЛАМПА ------------------------------
 void whiteLamp() {
   for (byte y = 0; y < (HEIGHT / 2); y++) {
-    CHSV color = CHSV(100, 1, constrain(modes[17].brightness - (long)modes[17].speed * modes[17].brightness / 255 * y / 2, 1, 255));
+    CHSV color = CHSV(100, 1, constrain(modes[17].brightness - (long)modes[18].speed * modes[17].brightness / 255 * y / 2, 1, 255));
     for (byte x = 0; x < WIDTH; x++) {
       drawPixelXY(x, y + 8, color);
       drawPixelXY(x, 7 - y, color);
@@ -425,6 +425,67 @@ void SinusoidRoutine()
       v = 127 * (1 + sinf ( sqrtf ( ((cx * cx) + (cy * cy)) ) ));
       color.g = v;
       drawPixelXY(x, y, color);
+    }
+  }
+}
+//-------------
+void MetaBallsRoutine() {
+    if (loadingFlag)
+    {
+      loadingFlag = false;
+      setCurrentPalette();
+    }
+      
+  float speed = modes[currentMode].speed / 127.0;
+
+  // get some 2 random moving points
+  uint8_t x2 = inoise8(millis() * speed, 25355, 685 ) / WIDTH;
+  uint8_t y2 = inoise8(millis() * speed, 355, 11685 ) / HEIGHT;
+
+  uint8_t x3 = inoise8(millis() * speed, 55355, 6685 ) / WIDTH;
+  uint8_t y3 = inoise8(millis() * speed, 25355, 22685 ) / HEIGHT;
+
+  // and one Lissajou function
+  uint8_t x1 = beatsin8(23 * speed, 0, 15);
+  uint8_t y1 = beatsin8(28 * speed, 0, 15);
+
+  for (uint8_t y = 0; y < HEIGHT; y++) {
+    for (uint8_t x = 0; x < WIDTH; x++) {
+
+      // calculate distances of the 3 points from actual pixel
+      // and add them together with weightening
+      uint8_t  dx =  abs(x - x1);
+      uint8_t  dy =  abs(y - y1);
+      uint8_t dist = 2 * sqrt((dx * dx) + (dy * dy));
+
+      dx =  abs(x - x2);
+      dy =  abs(y - y2);
+      dist += sqrt((dx * dx) + (dy * dy));
+
+      dx =  abs(x - x3);
+      dy =  abs(y - y3);
+      dist += sqrt((dx * dx) + (dy * dy));
+
+      // inverse result
+      //byte color = modes[currentMode].Speed * 10 / dist;
+      byte color = 1000U / dist;
+
+      // map color between thresholds
+      if (color > 0 and color < 60) {
+        if (modes[currentMode].scale == 100U)
+          drawPixelXY(x, y, CHSV(color * 9, 255, 255));// это оригинальный цвет эффекта
+        else
+          drawPixelXY(x, y, ColorFromPalette(*curPalette, color * 9));
+      } else {
+        if (modes[currentMode].scale == 100U)
+          drawPixelXY(x, y, CHSV(0, 255, 255)); // в оригинале центральный глаз почему-то крвсный
+        else
+          drawPixelXY(x, y, ColorFromPalette(*curPalette, 0U));
+      }
+      // show the 3 points, too
+      drawPixelXY(x1, y1, CRGB(255, 255, 255));
+      drawPixelXY(x2, y2, CRGB(255, 255, 255));
+      drawPixelXY(x3, y3, CRGB(255, 255, 255));
     }
   }
 }

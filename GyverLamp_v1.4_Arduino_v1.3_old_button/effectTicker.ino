@@ -39,19 +39,22 @@ void effectsTick() {
          break;
         case 15: colorRoutine();
           break;
-        case 16: snowRoutine();
+        case 16: colorsRoutine();
           break;
         case 17: matrixRoutine();
           break;
         case 18: whiteLamp();
          break;
-        case 19: colorsRoutine();
+        case 19: snowRoutine();
          break;
         case 20: stormRoutine2(true);
          break;
         case 21: stormRoutine2(false);
          break;
         case 22: SinusoidRoutine();
+         break;
+        case 23: MetaBallsRoutine();
+         break; 
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:
