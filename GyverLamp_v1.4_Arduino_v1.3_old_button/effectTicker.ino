@@ -41,9 +41,9 @@ void effectsTick() {
           break;
         case 16: colorsRoutine();
           break;
-        case 17: matrixRoutine();
+        case 17: whiteLamp();
           break;
-        case 18: whiteLamp();
+        case 18: matrixRoutine();
          break;
         case 19: snowRoutine();
          break;
@@ -59,12 +59,16 @@ void effectsTick() {
          break;
         case 25: ballsRoutine();
          break;
-        case 26: fire2012WithPalette4in1();
+        case 26: fire2012WithPalette();
          break;
-        case 27: twinklesRoutine();
-         break;
-        case 28: PrismataRoutine();
+        case 27: fire2012WithPalette4in1();
          break; 
+        case 28: twinklesRoutine();
+         break;
+        case 29: ringsRoutine();
+         break;
+        case 30: BBallsRoutine();
+         break;
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:
