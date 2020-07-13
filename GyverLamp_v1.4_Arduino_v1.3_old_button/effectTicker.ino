@@ -2,9 +2,8 @@ uint32_t effTimer;
 byte ind;
 
 void effectsTick() {
-  // if (!dawnFlag)
   {
-    if (ONflag && millis() - effTimer >= ((currentMode < 5 || currentMode > 13) ? modes[currentMode].speed : 50) ) {
+    if (ONflag && millis() - effTimer >= ((currentMode < 5 || currentMode > 13) ? modes[currentMode].Speed : 50) ) {
       effTimer = millis();
       switch (currentMode) {
         case 0: sparklesRoutine();
@@ -35,58 +34,60 @@ void effectsTick() {
           break;
         case 13: oceanNoise();
           break;
-        case 14: HeatNoise ();
+        case 14: HeatNoise();
          break;
-        case 15: colorRoutine();
-          break;
-        case 16: colorsRoutine();
-          break;
-        case 17: whiteLamp();
-          break;
-        case 18: matrixRoutine();
-         break;
-        case 19: snowRoutine();
-         break;
-        case 20: stormRoutine2(true);
-         break;
-        case 21: stormRoutine2(false);
-         break;
-        case 22: SinusoidRoutine();
-         break;
-        case 23: MetaBallsRoutine();
-         break;
-        case 24: ballRoutine();
-         break;
-        case 25: ballsRoutine();
-         break;
-        case 26: fire2012WithPalette();
-         break;
-        case 27: fire2012WithPalette4in1();
+        case 15: waterfallNoise();
          break; 
-        case 28: twinklesRoutine();
+        case 16: colorRoutine();
+          break;
+        case 17: colorsRoutine();
+          break;
+        case 18: whiteLamp();
+          break;
+        case 19: matrixRoutine();
          break;
-        case 29: ringsRoutine();
+        case 20: snowRoutine();
          break;
-        case 30: BBallsRoutine();
+        case 21: stormRoutine2(true);
+         break;
+        case 22: stormRoutine2(false);
+         break;
+        case 23: SinusoidRoutine();
+         break;
+        case 24: MetaBallsRoutine();
+         break;
+        case 25: ballRoutine();
+         break;
+        case 26: ballsRoutine();
+         break;
+        case 27: BBallsRoutine();
+         break;
+        case 28: fire2012WithPalette4in1();
+         break; 
+        case 29: fire2012WithPalette();
+         break;
+        case 30: ringsRoutine();
+         break;
+        case 32: twinklesRoutine();
          break;
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:
-          ind = sqrt(modes[currentMode].brightness + 1);
+          ind = sqrt(modes[currentMode].Brightness + 1);
           for (byte y = 0; y < HEIGHT ; y++) {
             if (ind > y) drawPixelXY(0, y, CHSV(10, 255, 255));
             else drawPixelXY(0, y,  0);
           }
           break;
         case 2:
-          ind = sqrt(modes[currentMode].speed - 1);
+          ind = sqrt(modes[currentMode].Speed - 1);
           for (byte y = 0; y <= HEIGHT ; y++) {
             if (ind <= y) drawPixelXY(0, 15 - y, CHSV(100, 255, 255));
             else drawPixelXY(0, 15 - y,  0);
           }
           break;
         case 3:
-          ind = sqrt(modes[currentMode].scale + 1);
+          ind = sqrt(modes[currentMode].Scale + 1);
           for (byte y = 0; y < HEIGHT ; y++) {
             if (ind > y) drawPixelXY(0, y, CHSV(150, 255, 255));
             else drawPixelXY(0, y,  0);
@@ -102,17 +103,17 @@ void effectsTick() {
 void changePower() {    // плавное включение/выключение
   if (ONflag) {
     effectsTick();
-    for (int i = 0; i < modes[currentMode].brightness; i += 8) {
+    for (int i = 0; i < modes[currentMode].Brightness; i += 8) {
       FastLED.setBrightness(i);
       delay(1);
       FastLED.show();
     }
-    FastLED.setBrightness(modes[currentMode].brightness);
+    FastLED.setBrightness(modes[currentMode].Brightness);
     delay(2);
     FastLED.show();
   } else {
     effectsTick();
-    for (int i = modes[currentMode].brightness; i > 8; i -= 8) {
+    for (int i = modes[currentMode].Brightness; i > 8; i -= 8) {
       FastLED.setBrightness(i);
       delay(1);
       FastLED.show();

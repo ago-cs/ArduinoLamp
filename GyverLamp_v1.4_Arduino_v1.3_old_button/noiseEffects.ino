@@ -1,15 +1,3 @@
-// ******************* НАСТРОЙКИ *****************
-// "масштаб" эффектов. Чем меньше, тем крупнее!
-#define MADNESS_SCALE 100
-#define CLOUD_SCALE 30
-#define LAVA_SCALE 50
-#define PLASMA_SCALE 30
-#define RAINBOW_SCALE 30
-#define RAINBOW_S_SCALE 20
-#define ZEBRA_SCALE 30
-#define FOREST_SCALE 120
-#define OCEAN_SCALE 90
-
 // ***************** ДЛЯ РАЗРАБОТЧИКОВ ******************
 
 // The 16 bit version of our coordinates
@@ -35,8 +23,8 @@ uint8_t ihue = 0;
 void madnessNoise() {
   if (loadingFlag) {
     loadingFlag = false;
-    scale = modes[5].scale;
-    speed = modes[5].speed;
+    scale = modes[5].Scale;
+    speed = modes[5].Speed;
   }
   fillnoise8();
   for (int i = 0; i < WIDTH; i++) {
@@ -51,8 +39,8 @@ void rainbowNoise() {
   if (loadingFlag) {
     loadingFlag = false;
     currentPalette = RainbowColors_p;
-    scale = modes[9].scale;
-    speed = modes[9].speed;
+    scale = modes[9].Scale;
+    speed = modes[9].Speed;
     colorLoop = 1;
   }
   fillNoiseLED();
@@ -61,8 +49,8 @@ void rainbowStripeNoise() {
   if (loadingFlag) {
     loadingFlag = false;
     currentPalette = RainbowStripeColors_p;
-    scale = modes[10].scale;
-    speed = modes[10].speed;
+    scale = modes[10].Scale;
+    speed = modes[10].Speed;
     colorLoop = 1;
   }
   fillNoiseLED();
@@ -77,8 +65,8 @@ void zebraNoise() {
     currentPalette[4] = CRGB::White;
     currentPalette[8] = CRGB::White;
     currentPalette[12] = CRGB::White;
-    scale = modes[11].scale;
-    speed = modes[11].speed;
+    scale = modes[11].Scale;
+    speed = modes[11].Speed;
     colorLoop = 1;
     
 //    Serial.print(" speed:");
@@ -92,8 +80,8 @@ void forestNoise() {
   if (loadingFlag) {
     loadingFlag = false;
     currentPalette = ForestColors_p;
-    scale = modes[12].scale;
-    speed = modes[12].speed;
+    scale = modes[12].Scale;
+    speed = modes[12].Speed;
     colorLoop = 0;
   }
   fillNoiseLED();
@@ -102,8 +90,8 @@ void oceanNoise() {
   if (loadingFlag) {
     loadingFlag = false;
     currentPalette = OceanColors_p;
-    scale = modes[13].scale;
-    speed = modes[13].speed;
+    scale = modes[13].Scale;
+    speed = modes[13].Speed;
     colorLoop = 0;
   }
 
@@ -113,8 +101,8 @@ void plasmaNoise() {
   if (loadingFlag) {
     loadingFlag = false;
     currentPalette = PartyColors_p;
-    scale = modes[8].scale;
-    speed = modes[8].speed;
+    scale = modes[8].Scale;
+    speed = modes[8].Speed;
     colorLoop = 1;
   }
   fillNoiseLED();
@@ -123,8 +111,8 @@ void cloudNoise() {
   if (loadingFlag) {
     loadingFlag = false;
     currentPalette = CloudColors_p;
-    scale = modes[6].scale;
-    speed = modes[6].speed;
+    scale = modes[6].Scale;
+    speed = modes[6].Speed;
     colorLoop = 0;
   }
   fillNoiseLED();
@@ -133,8 +121,8 @@ void lavaNoise() {
   if (loadingFlag) {
     loadingFlag = false;
     currentPalette = LavaColors_p;
-    scale = modes[7].scale;
-    speed = modes[7].speed;
+    scale = modes[7].Scale;
+    speed = modes[7].Speed;
     colorLoop = 0;
   }
   fillNoiseLED();
@@ -143,8 +131,18 @@ void HeatNoise() {
   if (loadingFlag) {
     loadingFlag = false;
     currentPalette = HeatColors_p;
-    scale = modes[14].scale;
-    speed = modes[14].speed;
+    scale = modes[14].Scale;
+    speed = modes[14].Speed;
+    colorLoop = 0;
+  }
+  fillNoiseLED();
+}
+void waterfallNoise() {
+  if (loadingFlag) {
+    loadingFlag = false;
+    currentPalette = WaterfallColors_p;
+    scale = modes[15].Scale;
+    speed = modes[15].Speed;
     colorLoop = 0;
   }
   fillNoiseLED();

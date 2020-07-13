@@ -42,7 +42,7 @@
 // ============= ДЛЯ РАЗРАБОТЧИКОВ =============
 #define LED_PIN 6             // пин ленты
 #define BTN_PIN 2
-#define MODE_AMOUNT 31
+#define MODE_AMOUNT 33
 #define NUM_LEDS WIDTH * HEIGHT
 #define SEGMENTS 1            // диодов в одном "пикселе" (для создания матрицы из кусков ленты)
 
@@ -58,42 +58,22 @@ CRGB leds[NUM_LEDS];
 GButton touch(BTN_PIN, HIGH_PULL, NORM_OPEN);
 
 // ----------------- ПЕРЕМЕННЫЕ ------------------
-
-//String inputBuffer;
 static const byte maxDim = max(WIDTH, HEIGHT);
 struct {
-  byte brightness = 50;
-  byte speed = 30;
-  byte scale = 10;
+  byte Brightness = 10;
+  byte Speed = 30;
+  byte Scale = 10;
 } modes[MODE_AMOUNT];
-
-//struct {
-//  boolean state = false;
-//  int time = 0;
-//} alarm[7];
-
-//byte dawnOffsets[] = {5, 10, 15, 20, 25, 30, 40, 50, 60};
-//byte dawnMode;
-//boolean dawnFlag = false;
-//long thisTime;
-//boolean manualOff = false;
 
 int8_t currentMode = 10;
 boolean loadingFlag = true;
 boolean ONflag = true;
 byte numHold;
 unsigned long numHold_Timer = 0;
-//uint32_t eepromTimer;
-//boolean settChanged = false;
-// Конфетти, Огонь, Радуга верт., Радуга гориз., Смена цвета,
-// Безумие 3D, Облака 3D, Лава 3D, Плазма 3D, Радуга 3D,
-// Павлин 3D, Зебра 3D, Лес 3D, Океан 3D,
-// colorRoutine, snowRoutine, полосы "Матрица"
-
 unsigned char matrixValue[8][16];
 
-void setup() {
 
+void setup() {
   // ЛЕНТА
   FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS)/*.setCorrection( TypicalLEDStrip )*/;
   FastLED.setBrightness(BRIGHTNESS);
@@ -110,9 +90,9 @@ void setup() {
   if (EEPROM.read(0) == 102) {                    // если было сохранение настроек, то восстанавливаем их (с)НР
     currentMode = EEPROM.read(1);
     for (byte x = 0; x < MODE_AMOUNT; x++) {
-      modes[x].brightness = EEPROM.read(x * 3 + 11); // (2-10 байт - резерв)
-      modes[x].speed = EEPROM.read(x * 3 + 12);
-      modes[x].scale = EEPROM.read(x * 3 + 13);
+      modes[x].Brightness = EEPROM.read(x * 3 + 11); // (2-10 байт - резерв)
+      modes[x].Speed = EEPROM.read(x * 3 + 12);
+      modes[x].Scale = EEPROM.read(x * 3 + 13);
     }
 
   }
@@ -120,7 +100,5 @@ void setup() {
 
 void loop() {
   effectsTick();
-  //timeTick();
   buttonTick();
-  //yield();
 }
