@@ -6,21 +6,7 @@
   Автор: AlexGyver, AlexGyver Technologies, 2019
   https://AlexGyver.ru/
 */
-
-/*
-  Версия 1.4:
-  - Исправлен баг при смене режимов
-  - Исправлены тормоза в режиме точки доступа
-*/
-
-//// Ссылка для менеджера плат:
-//// http://arduino.esp8266.com/stable/package_esp8266com_index.json
-
 // ============= НАСТРОЙКИ =============
-
-//// -------- РАССВЕТ -------
-//#define DAWN_BRIGHT 200       // макс. яркость рассвета
-//#define DAWN_TIMEOUT 1        // сколько рассвет светит после времени будильника, минут
 
 // ---------- МАТРИЦА ---------
 #define BRIGHTNESS 40         // стандартная маскимальная яркость (0-255)
@@ -54,7 +40,6 @@
 
 // ------------------- ТИПЫ --------------------
 CRGB leds[NUM_LEDS];
-//timerMinim timeTimer(3000);
 GButton touch(BTN_PIN, HIGH_PULL, NORM_OPEN);
 
 // ----------------- ПЕРЕМЕННЫЕ ------------------
@@ -84,8 +69,8 @@ void setup() {
   touch.setStepTimeout(100);
   touch.setClickTimeout(500);
 
-  Serial.begin(9600);
-  Serial.println();
+  //Serial.begin(9600);
+  //Serial.println();
 
   if (EEPROM.read(0) == 102) {                    // если было сохранение настроек, то восстанавливаем их (с)НР
     currentMode = EEPROM.read(1);
