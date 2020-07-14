@@ -122,19 +122,4 @@ void changePower() {    // плавное включение/выключени�
     delay(2);
     FastLED.show();
   }
-} 
-/* void demo(){
-  DemTimer=DemTi;
-  if(Demo == true)
-  millis()/1000;
-  DemTimer=DemTimer-1;
-  if(DemTimer=0);
-  if (--currentMode < 0){ currentMode = MODE_AMOUNT - 1;
-      FastLED.setBrightness(modes[currentMode].brightness);
-      loadingFlag = true;
-      //settChanged = true;
-      FastLED.clear();
-      delay(1);
-      DemTimer=DemTi; 
-}
-}*/  
+}   
