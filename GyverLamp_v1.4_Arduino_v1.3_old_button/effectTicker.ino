@@ -34,9 +34,9 @@ void effectsTick() {
           break;
         case 13: oceanNoise();
           break;
-        case 14: HeatNoise();
+        case 14: heatNoise();
          break;
-        case 15: waterfallNoise();
+        case 15: smokeNoise();
          break; 
         case 16: colorRoutine();
           break;
@@ -68,7 +68,9 @@ void effectsTick() {
          break;
         case 30: ringsRoutine();
          break;
-        case 32: twinklesRoutine();
+        case 31: twinklesRoutine();
+         break;
+        case 32: NoiseWave();
          break;
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба

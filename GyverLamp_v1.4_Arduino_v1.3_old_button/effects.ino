@@ -120,7 +120,6 @@ const unsigned char hueMask[8][16] PROGMEM = {
 void fireRoutine() {
   if (loadingFlag) {
     loadingFlag = false;
-    //FastLED.clear();
     generateLine();
   }
   if (pcnt >= 100) {
@@ -301,12 +300,30 @@ void matrixRoutine() {
 }
 
 // ------------------------------ БЕЛАЯ ЛАМПА ------------------------------
-void whiteLamp() {
-  for (byte y = 0; y < (HEIGHT / 2); y++) {
-    CHSV color = CHSV(100, 1, constrain(modes[17].Brightness - (long)modes[18].Speed * modes[18].Brightness / 255 * y / 2, 1, 255));
-    for (byte x = 0; x < WIDTH; x++) {
-      drawPixelXY(x, y + 8, color);
-      drawPixelXY(x, 7 - y, color);
+void whiteLamp()
+{
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    FastLED.clear();
+    delay(1);
+
+    uint8_t centerY = max((uint8_t)round(HEIGHT / 2.0F) - 1, 0);
+    uint8_t bottomOffset = (uint8_t)(!(HEIGHT & 1) && (HEIGHT > 1));                      // если высота матрицы чётная, линий с максимальной яркостью две, а линии с минимальной яркостью снизу будут смещены на один ряд
+    for (int16_t y = centerY; y >= 0; y--)
+    {
+      CRGB color = CHSV(
+                     45U,                                                                              // определяем тон
+                     map(modes[currentMode].Speed, 0U, 255U, 0U, 170U),                                // определяем насыщенность
+                     y == centerY                                                                      // определяем яркость
+                     ? 255U                                                                          // для центральной горизонтальной полосы (или двух) яркость всегда равна 255
+                     : (modes[currentMode].Scale / 100.0F) > ((centerY + 1.0F) - (y + 1.0F)) / (centerY + 1.0F) ? 255U : 0U);  // для остальных горизонтальных полос яркость равна либо 255, либо 0 в зависимости от масштаба
+
+      for (uint8_t x = 0U; x < WIDTH; x++)
+      {
+        drawPixelXY(x, y, color);                                                         // при чётной высоте матрицы максимально яркими отрисуются 2 центральных горизонтальных полосы
+        drawPixelXY(x, max((uint8_t)(HEIGHT - 1U) - (y + 1U) + bottomOffset, 0U), color); // при нечётной - одна, но дважды
+      }
     }
   }
 }
@@ -443,7 +460,7 @@ void MetaBallsRoutine() {
     }
   }
 }
-//----------------------------------------
+//-----------------Блуждающий кубик-----------------------
 #define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке
 int16_t coordB[2U];
 int8_t vectorB[2U];
@@ -516,7 +533,7 @@ void ballRoutine()
       leds[XY(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = ballColor;
 }
 
-//-----------------------------------------------
+//-------------------Светлячки со шлейфом----------------------------
 #define BALLS_AMOUNT          (3U)                          // количество "шариков"
 #define CLEAR_PATH            (1U)                          // очищать путь
 #define BALL_TRACK            (1U)                          // (0 / 1) - вкл/выкл следы шариков
@@ -583,7 +600,7 @@ void ballsRoutine()
   }
 }
 
-//-------------------------------------------------
+//-------------------Водопад------------------------------
 extern const TProgmemRGBPalette16 WaterfallColors4in1_p FL_PROGMEM = {
   CRGB::Black,
   CRGB::DarkSlateGray,
@@ -691,7 +708,7 @@ void fire2012WithPalette() {
   }
 }
 
-//---------------------------------------------
+//-----------------Мерцания----------------------------
 
 #define TWINKLES_SPEEDS 4     // всего 4 варианта скоростей мерцания
 #define TWINKLES_MULTIPLIER 6 // слишком медленно, если на самой медленной просто по единичке к яркости добавлять
@@ -921,42 +938,18 @@ void BBallsRoutine() {
     leds[XY(bballsX[i], bballsPos[i])] = CHSV(bballsCOLOR[i] + deltaHue, hue2, 255U);
   }
 }
-/*//--------------------------------------------------------------
-#define HUE_GAP 40      // заброс по hue
-#define FIRE_STEP 35    // шаг изменения "языков" пламени
-#define HUE_START 2     // начальный цвет огня (0 красный, 80 зелёный, 140 молния, 190 розовый)
-#define HUE_COEF 0.7    // коэффициент цвета огня (чем больше - тем дальше заброс по цвету)
-#define SMOOTH_K 0.15   // коэффициент плавности огня
-#define MIN_BRIGHT 60   // мин. яркость огня
-#define MAX_BRIGHT 255  // макс. яркость огня
-#define MIN_SAT 180     // мин. насыщенность
-#define MAX_SAT 255     // макс. насыщенность
-
+//-----------------------Шумовая волна---------------------------------------
 #define FOR_i(from, to) for(int i = (from); i < (to); i++)
 #define FOR_j(from, to) for(int j = (from); j < (to); j++)
-
+int counter = 0;
 void NoiseWave() {
-  static uint32_t prevTime = 0;
-  if (millis() - prevTime > 30) {
-    prevTime = millis();
-    FastLED.clear();
+   FastLED.clear();
     FOR_i(0, WIDTH) {
-      byte thisVal = inoise8(i * FIRE_STEP, counter);
-      byte thisMax = map(thisVal, 0, 255, 0, M_HEIGHT);
+      byte thisVal = inoise8(i * modes[currentMode].Scale, counter);
+      byte thisMax = map(thisVal, 0, 255, 0, HEIGHT);
       FOR_j(0, thisMax) {
-        getPixColor.setPix(i, j, mHEX(getPixColor(ColorFromPalette(HeatColors_p, map(j, 0, thisMax, 250, 0), 255, LINEARBLEND))));
+        drawPixelXY(i, j, ColorFromPalette(WaterfallColors4in1_p, map(j, 0, thisMax, 250, 0), 255, LINEARBLEND));
       }
     }
     counter += 30;
-   }
-} FastLED.show();
-  
-
-CRGB getFireColor(int val) {
-  // чем больше val, тем сильнее сдвигается цвет, падает насыщеность и растёт яркость
-  return CHSV(
-           HUE_START + map(val, 0, 255, 0, HUE_GAP),                    // H
-           constrain(map(val, 0, 255, MAX_SAT, MIN_SAT), 0, 255),       // S
-           constrain(map(val, 0, 255, MIN_BRIGHT, MAX_BRIGHT), 0, 255)  // V
-         );
-}*/
+}
