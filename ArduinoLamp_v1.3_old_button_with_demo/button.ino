@@ -40,6 +40,12 @@ if (ONflag) {                 // если включено
       if (EEPROM.read(x * 3 + 12) != modes[x].Speed) EEPROM.write(x * 3 + 12, modes[x].Speed);
       if (EEPROM.read(x * 3 + 13) != modes[x].Scale) EEPROM.write(x * 3 + 13, modes[x].Scale);
     }
+     if ((touch.hasClicks()) && (touch.getClicks() == 4)) {
+      if(isDemo){
+      isDemo = false;}
+      else{
+        isDemo = true;}
+          }
     // индикация сохранения
     ONflag = false;
     changePower();

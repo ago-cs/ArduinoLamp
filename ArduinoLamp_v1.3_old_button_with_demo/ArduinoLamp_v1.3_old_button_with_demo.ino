@@ -83,7 +83,6 @@ void setup() {
       modes[x].Speed = EEPROM.read(x * 3 + 12);
       modes[x].Scale = EEPROM.read(x * 3 + 13);
     }
-
   }
 }
 
@@ -93,15 +92,10 @@ void loop() {
   demo;
 }
 void demo(){
-  if (isDemo
-      && ONflag                              // лампа не переключается на следующий эффект при выключенной матрице
-      && millis() >= DemTimer
-     )
-  {
-    //currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
-    currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
+  if (isDemo && ONflag && millis() >= DemTimer){
+    currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
+    //currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
 
     DemTimer = millis() + DEMOTIMELIMIT;
-    loadingFlag = true;
-}
+    loadingFlag = true;}
 }
