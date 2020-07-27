@@ -318,7 +318,8 @@ void whiteLamp() {
       drawPixelXY(x, 7 - y, color);
     }
   }
-}//--------------------------Шторм,Метель-------------------------
+}
+//--------------------------Шторм,Метель-------------------------
 #define e_sns_DENSE (32U) // плотность снега - меньше = плотнее
 void stormRoutine2(bool isColored)
 {
@@ -595,27 +596,7 @@ void ballsRoutine()
 //-------------------Водопад,огонь2012------------------------------
 #define COOLINGNEW 32
 #define SPARKINGNEW 80 
-extern const TProgmemRGBPalette16 WaterfallColors4in1_p FL_PROGMEM = {
-  CRGB::Black,
-  CRGB::DarkSlateGray,
-  CRGB::DimGray,
-  CRGB::LightSlateGray,
-
-  CRGB::DimGray,
-  CRGB::DarkSlateGray,
-  CRGB::Silver,
-  CRGB::DarkCyan,
-
-  CRGB::Lavender,
-  CRGB::Silver,
-  CRGB::Azure,
-  CRGB::LightGrey,
-
-  CRGB::GhostWhite,
-  CRGB::Silver,
-  CRGB::White,
-  CRGB::RoyalBlue
-};
+extern const TProgmemRGBPalette16 WaterfallColors4in1_p FL_PROGMEM = {CRGB::Black,CRGB::DarkSlateGray,CRGB::DimGray,CRGB::LightSlateGray,CRGB::DimGray,CRGB::DarkSlateGray,CRGB::Silver,CRGB::Lavender,CRGB::Silver,CRGB::Azure,CRGB::LightGrey,CRGB::GhostWhite,CRGB::Silver,CRGB::White,CRGB::RoyalBlue};
 void fire2012WithPalette4in1() { 
   uint8_t rCOOLINGNEW = constrain((uint16_t)(modes[currentMode].Scale % 16) * 32 / HEIGHT + 16, 1, 255) ;
   // Array of temperature readings at each simulation cell
@@ -742,80 +723,28 @@ void noiseWave(bool isColored) {
       else{
       STEP = modes[currentMode].Scale;
       FOR_j(0, thisMax) {
-        drawPixelXY(i, j, ColorFromPalette(WaterfallColors4in1_p, map(j, 0, thisMax, 250, 0), 255, LINEARBLEND));}
+        drawPixelXY(i, j, ColorFromPalette(WaterfallColors_p, map(j, 0, thisMax, 250, 0), 255, LINEARBLEND));}
       }
     }
     counter += 30;
 }
-//------------------------------Разнацветный дождь--------------------------------------------
-CRGB solidRainColor = CRGB(60,80,90);
-void rain(byte backgroundDepth, byte maxBrightness, byte spawnFreq, byte tailLength, CRGB rainColor, bool splashes, bool clouds, bool storm)
-{
-  static uint16_t noiseX = random16();
-  static uint16_t noiseY = random16();
-  static uint16_t noiseZ = random16();
-  CRGB lightningColor = CRGB(72,72,80);
-  CRGBPalette16 rain_p( CRGB::Black, rainColor );
-#ifdef SMARTMATRIX
-  CRGBPalette16 rainClouds_p( CRGB::Black, CRGB(75,84,84), CRGB(49,75,75), CRGB::Black );
-#else
-  CRGBPalette16 rainClouds_p( CRGB::Black, CRGB(15,24,24), CRGB(9,15,15), CRGB::Black );
-#endif
-  fadeToBlackBy( leds, NUM_LEDS, 255-tailLength);
-  // Loop for each column individually
-  for (int x = 0; x < WIDTH; x++) {
-    // Step 1.  Move each dot down one cell
-    for (int i = 0; i < HEIGHT; i++) {
-      if (noise3d[0][x][i] >= backgroundDepth) {  // Don't move empty cells
-        if (i > 0) noise3d[0][x][wrapY(i-1)] = noise3d[0][x][i];
-        noise3d[0][x][i] = 0;
-      }
-    }
-    // Step 2.  Randomly spawn new dots at top
-    if (random8() < spawnFreq) {
-      noise3d[0][x][HEIGHT-1] = random(backgroundDepth, maxBrightness);
-    }
-    // Step 3. Map from tempMatrix cells to LED colors
-    for (int y = 0; y < HEIGHT; y++) {
-      if (noise3d[0][x][y] >= backgroundDepth) {  // Don't write out empty cells
-        leds[XY(x,y)] = ColorFromPalette(rain_p, noise3d[0][x][y]);
-      }
-    }
-    // Step 4. Add splash if called for
-    if (splashes) {
-      // FIXME, this is broken
-      byte j = line[x];
-      byte v = noise3d[0][x][0];
-      if (j >= backgroundDepth) {
-        leds[XY(wrapX(x-2),0)] = ColorFromPalette(rain_p, j/3);
-        leds[XY(wrapX(x+2),0)] = ColorFromPalette(rain_p, j/3);
-        line[x] = 0;   // Reset splash
-      }
-      if (v >= backgroundDepth) {
-        leds[XY(wrapX(x-1),1)] = ColorFromPalette(rain_p, v/2);
-        leds[XY(wrapX(x+1),1)] = ColorFromPalette(rain_p, v/2);
-        line[x] = v; // Prep splash for next frame
-      }
-    }
-  }
+//-----------Показ анимации------------------
+#define D_GIF_SPEED 80 
+// функция загрузки картинки в матрицу. должна быть здесь, иначе не работает =)
+void loadImage(uint16_t (*frame)[WIDTH]) {
+  for (byte i = 0; i < WIDTH; i++)
+    for (byte j = 0; j < HEIGHT; j++)
+      drawPixelXY(i, j, gammaCorrection(expandColor((pgm_read_word(&(frame[HEIGHT - j - 1][i]))))));
+  // да, тут происходит лютенький п@здец, а именно:
+  // 1) pgm_read_word - восстанавливаем из PROGMEM (флэш памяти) цвет пикселя в 16 битном формате по его координатам
+  // 2) expandColor - расширяем цвет до 24 бит (спасибо adafruit)
+  // 3) gammaCorrection - проводим коррекцию цвета для более корректного отображения
 }
-uint8_t myScale8(uint8_t x) { // даёт масштабировать каждые 8 градаций (от 0 до 7) бегунка Масштаб в значения от 0 до 255 по типа синусоиде
-  uint8_t x8 = x % 8U;
-  uint8_t x4 = x8 % 4U;
-  if (x4 == 0U)
-    if (x8 == 0U)       return 0U;
-    else                return 255U;
-  else if (x8 < 4U)     return (1U   + x4 * 72U); // всего 7шт по 36U + 3U лишних = 255U (чтобы восхождение по синусоиде не было зеркально спуску)
-//else
-                        return (253U - x4 * 72U); // 253U = 255U - 2U
-}
-void coloredRain() // внимание! этот эффект заточен на работу бегунка Масштаб в диапазоне от 0 до 255. пока что единственный.
-{
-  // я хз, как прикрутить а 1 регулятор и длину хвостов и цвет капель
-  // ( Depth of dots, maximum brightness, frequency of new dots, length of tails, color, splashes, clouds, ligthening )
-  //rain(60, 200, map8(intensity,5,100), 195, CRGB::Green, false, false, false); // было CRGB::Green
-  if (modes[currentMode].Scale > 247U)
-    rain(60, 200, map8(42,5,100), myScale8(modes[currentMode].Scale), solidRainColor, false, false, false);
-  else
-    rain(60, 200, map8(42,5,100), myScale8(modes[currentMode].Scale), CHSV(modes[currentMode].Scale, 255U, 255U), false, false, false);
-}
+timerMinim gifTimer(D_GIF_SPEED);
+
+byte frameNum;
+  void animation1() {
+  if (gifTimer.isReady()) {
+    frameNum++;
+    if (frameNum >= sizeof(framesArray)) frameNum = 0;
+    loadImage(framesArray[frameNum]);}}
