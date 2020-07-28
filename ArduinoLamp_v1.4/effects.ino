@@ -33,6 +33,15 @@ void setCurrentPalette(){      if (modes[currentMode].Scale > 100U) modes[curren
       curPalette = palette_arr[(uint8_t)(modes[currentMode].Scale/100.0F*((sizeof(palette_arr)/sizeof(TProgmemRGBPalette16 *))-0.01F))];
 }
 CRGB _pulse_color;
+void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
+{
+  blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
+}
+void dimAll(uint8_t value) {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i].nscale8(value); //fadeToBlackBy
+  }
+}
 // --------------------------------- конфетти ------------------------------------
 #define FADE_OUT_SPEED        (70U)                         // скорость затухания
 void sparklesRoutine()
@@ -680,12 +689,12 @@ void fire2012WithPalette() {
     }
   }
 }
-//-----------------------Шумовая волна---------------------------------------
+//-----------------------Недо огонь---------------------------------------
 //stepko
 #define FOR_i(from, to) for(int i = (from); i < (to); i++)
 #define FOR_j(from, to) for(int j = (from); j < (to); j++)
 int counter = 0;
-int STEP = modes[30].Scale; //нужно виставить номер эффекта с пометкой false или любое число если не хотите Белой волны 
+int STEP = modes[30].Scale; //нужно виставить номер эффекта с пометкой false или любое число если не хотите Белого огня 
 void noiseWave(bool isColored) {
    FastLED.clear();
     FOR_i(0, WIDTH) {
@@ -729,7 +738,6 @@ void noiseWave(bool isColored) {
     counter += 30;
 }
 //-----------Показ анимации------------------ как то не то
-#define D_GIF_SPEED 80 
 // функция загрузки картинки в матрицу. должна быть здесь, иначе не работает =)
 void loadImage(uint16_t (*frame)[WIDTH]) {
   for (byte i = 0; i < WIDTH; i++)
@@ -740,11 +748,31 @@ void loadImage(uint16_t (*frame)[WIDTH]) {
   // 2) expandColor - расширяем цвет до 24 бит (спасибо adafruit)
   // 3) gammaCorrection - проводим коррекцию цвета для более корректного отображения
 }
-timerMinim gifTimer(D_GIF_SPEED);
 
 byte frameNum;
   void animation1() {
-  if (gifTimer.isReady()) {
     frameNum++;
     if (frameNum >= sizeof(framesArray)) frameNum = 0;
-    loadImage(framesArray[frameNum]);}}
+    loadImage(framesArray[frameNum]);}
+// ****************************** ОГОНЁК ******************************
+int16_t position;
+boolean direction;
+
+void lighter() {        
+      blurScreen(20); // @Palpalych советует делать размытие
+      dimAll(255U - modes[currentMode].Speed / 10);
+  FastLED.clear();
+  if (direction) {
+    position++;
+    if (position > NUM_LEDS - 2) {
+      direction = false;
+    }
+  } else {
+    position--;
+    if (position < 1) {
+      direction = true;
+    }
+  }
+  leds[position] =  CHSV(modes[currentMode].Scale * 2.5,255, 255);
+}
+    

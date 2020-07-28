@@ -9,7 +9,7 @@
 #include <EEPROM.h>
 #include <FastLED.h>
 #include <GyverButton.h>
-#include "timerMinim.h"
+//-----------------            -----------------
 #include "bitmap2.h"
 #include "Constants.h"
 // ----------------- ПЕРЕМЕННЫЕ ------------------
