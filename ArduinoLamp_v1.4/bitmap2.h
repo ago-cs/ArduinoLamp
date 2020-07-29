@@ -143,3 +143,4 @@ const uint16_t frame12[][8] PROGMEM = {
 const uint16_t framesArray[13] = {
   frame00, frame01, frame02, frame03, frame04, frame05, frame06, frame07, frame08, frame09, 
   frame10, frame11, frame12,};
+  byte frameNum;

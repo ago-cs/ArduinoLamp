@@ -30,12 +30,13 @@ void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 5 ||
    case 25: MetaBallsRoutine();            break;
    case 26: ballRoutine();                 break;
    case 27: ballsRoutine();                break;
-   case 28: fire2012WithPalette4in1();     break; 
-   case 29: fire2012WithPalette();         break;
-   case 30: noiseWave(false);              break;
-   case 31: noiseWave(true);               break;
-   case 32: animation1();                  break;
-   case 33: lighter();                     break;
+   case 28: fire2012WithPalette();         break;
+   case 29: noiseWave(false);              break;
+   case 30: noiseWave(true);               break;
+   case 31: lighter();                     break;
+   case 32: lightersRoutine();             break;
+   case 33: BBallsRoutine();               break;
+   case 34: animation1();                  break;
 }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:

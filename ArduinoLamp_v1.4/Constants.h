@@ -20,7 +20,7 @@
 #define LED_PIN 6             // пин ленты
 #define BTN_PIN 2
 //#define BTN2_PIN 3 потом
-#define MODE_AMOUNT 34        //кол-во эффектов
+#define MODE_AMOUNT 35        //кол-во эффектов
 #define NUM_LEDS WIDTH * HEIGHT
 #define SEGMENTS 1            // диодов в одном "пикселе" (для создания матрицы из кусков ленты)
 // ------------------- ТИПЫ --------------------
