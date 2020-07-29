@@ -738,14 +738,16 @@ void noiseWave(bool isColored) {
     counter += 30;
 }
 
+//----------------Gifка----------------------
+byte frameNum;
 void animation1() {
   frameNum++;
-  if (frameNum >= 13) frameNum = 0;
+  if (frameNum >= 6) frameNum = 0;
   for (byte i = 0; i < 8; i++)
     for (byte j = 0; j < 8; j++)
       //drawPixelXY(i, j, pgm_read_word(&framesArray[frameNum][i][j]));
       //лютенький п@здец    
-      drawPixelXY(i, j, gammaCorrection(expandColor(pgm_read_word(&framesArray[frameNum][i][j]))));    
+      drawPixelXY(i, j, gammaCorrection(expandColor(pgm_read_word(&framesArray[frameNum][HEIGHT - j - 1][i]))));    
 }
 
 //далее будут эффекты заточены для лампы в.1 лиш нужно припаять ленты как матрицу(паралельная или зигзаг) 
