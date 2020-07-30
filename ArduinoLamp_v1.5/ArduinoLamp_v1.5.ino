@@ -54,8 +54,9 @@ void loop() {
 }
 void demo(){
   if (isDemo && ONflag && millis() >= DemTimer){
-    currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
-    //currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
+    FastLED.clear();
+    //currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
+    currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
 
     DemTimer = millis() + DEMOTIMELIMIT;
     loadingFlag = true;}
