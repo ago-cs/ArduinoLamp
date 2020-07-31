@@ -229,7 +229,7 @@ void drawFrame(uint8_t pcnt, bool isColored) {                  // прорис�
   }
 }
 // ---------------------------------------- радуга ------------------------------------------
-byte hue;
+byte hue;byte hue2;
 void rainbowVertical() {
   hue += 2;
   for (byte j = 0; j < HEIGHT; j++) {
@@ -281,7 +281,7 @@ void colorRoutine() {
 }
 
 // ------------------------------ снегопад 2.0 --------------------------------
-void snowRoutine() {
+/*void snowRoutine() {
   // сдвигаем всё вниз
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT - 1; y++) {
@@ -298,9 +298,9 @@ void snowRoutine() {
       drawPixelXY(x, HEIGHT - 1, 0x000000);
   }
 }
-
+*/
 // ------------------------------ МАТРИЦА ------------------------------
-void matrixRoutine() {
+/*void matrixRoutine() {
   for (byte x = 0; x < WIDTH; x++) {
     // заполняем случайно верхнюю строку
     uint32_t thisColor = getPixColorXY(x, HEIGHT - 1);
@@ -319,7 +319,7 @@ void matrixRoutine() {
     }
   }
 }
-
+*/
 // ------------------------------ БЕЛАЯ ЛАМПА ------------------------------
 void whiteLamp() {
   for (byte y = 0; y < (HEIGHT / 2); y++) {
@@ -748,7 +748,7 @@ counter += 30;
 }
 
 //----------------Gifка----------------------
-byte frameNum;
+/*byte frameNum;
 void animation1() {
   frameNum++;
   if (frameNum >= 6) frameNum = 0;
@@ -756,9 +756,112 @@ void animation1() {
     for (byte j = 0; j < 8; j++)
       drawPixelXY(i, j, gammaCorrection(expandColor(pgm_read_word(&framesArray[frameNum][HEIGHT - j - 1][i]))));
 }
+*/
 
 
-/*// ============= ЭФФЕКТ ДОЖДЬ ===============
+// -------------- эффект пульс ------------
+// Stefan Petrick's PULSE Effect mod by PalPalych for GyverLamp
+
+void drawCircle(int16_t x0, int16_t y0, uint16_t radius, const CRGB & color) {
+  int a = radius, b = 0;
+  int radiusError = 1 - a;
+
+  if (radius == 0) {
+    drawPixelXY(x0, y0, color);
+    return;
+  }
+
+  while (a >= b)  {
+    drawPixelXY(a + x0, b + y0, color);
+    drawPixelXY(b + x0, a + y0, color);
+    drawPixelXY(-a + x0, b + y0, color);
+    drawPixelXY(-b + x0, a + y0, color);
+    drawPixelXY(-a + x0, -b + y0, color);
+    drawPixelXY(-b + x0, -a + y0, color);
+    drawPixelXY(a + x0, -b + y0, color);
+    drawPixelXY(b + x0, -a + y0, color);
+    b++;
+    if (radiusError < 0)
+      radiusError += 2 * b + 1;
+    else
+    {
+      a--;
+      radiusError += 2 * (b - a + 1);
+    }
+  }
+}
+
+CRGBPalette16 palette;
+uint8_t currentRadius = 4;
+uint8_t pulse_centerX = random8(WIDTH - 5U) + 3U;
+uint8_t pulse_centerY = random8(HEIGHT - 5U) + 3U;
+//uint16_t _rc; вроде, не используется
+//uint8_t _pulse_hue; заменено на deltaHue из общих переменных
+//uint8_t _pulse_hueall; заменено на hue2 из общих переменных
+//uint8_t _pulse_delta; заменено на deltaHue2 из общих переменных
+//uint8_t pulse_hue; заменено на hue из общих переменных
+
+void pulseRoutine(uint8_t PMode) {
+    palette = RainbowColors_p;
+    const uint8_t limitSteps = 6U;
+    static const float fadeRate = 0.8;
+
+    dimAll(248U);
+    uint8_t _sat;
+    if (step <= currentRadius) {
+      for (uint8_t i = 0; i < step; i++ ) {
+        uint8_t _dark = qmul8( 2U, cos8 (128U / (step + 1U) * (i + 1U))) ;
+        switch (PMode) {
+          case 1U:                    // 1 - случайные диски
+            deltaHue = hue;
+            _pulse_color = CHSV(deltaHue, 255U, _dark);
+            break;
+          case 2U:                    // 2...17 - перелив цвета дисков
+            deltaHue2 = modes[currentMode].Scale;
+            _pulse_color = CHSV(hue2, 255U, _dark);
+            break;
+          case 3U:                    // 18...33 - выбор цвета дисков
+            deltaHue = modes[currentMode].Scale * 2.55;
+            _pulse_color = CHSV(deltaHue, 255U, _dark);
+            break;
+          case 4U:                    // 34...50 - дискоцветы
+            deltaHue += modes[currentMode].Scale;
+            _pulse_color = CHSV(deltaHue, 255U, _dark);
+            break;
+          case 5U:                    // 51...67 - пузыри цветы
+            _sat =  qsub8( 255U, cos8 (128U / (step + 1U) * (i + 1U))) ;
+            deltaHue += modes[currentMode].Scale;
+            _pulse_color = CHSV(deltaHue, _sat, _dark);
+            break;
+          case 6U:                    // 68...83 - выбор цвета пузырей
+            _sat =  qsub8( 255U, cos8 (128U / (step + 1U) * (i + 1U))) ;
+            deltaHue = modes[currentMode].Scale * 2.55;
+            _pulse_color = CHSV(deltaHue, _sat, _dark);
+            break;
+          case 7U:                    // 84...99 - перелив цвета пузырей
+            _sat =  qsub8( 255U, cos8 (128U / (step + 1U) * (i + 1U))) ;
+            deltaHue2 = modes[currentMode].Scale;
+            _pulse_color = CHSV(hue2, _sat, _dark);
+            break;
+          case 8U:                    // 100 - случайные пузыри
+            _sat =  qsub8( 255U, cos8 (128U / (step + 1U) * (i + 1U))) ;
+            deltaHue = hue;
+            _pulse_color = CHSV(deltaHue, _sat, _dark);
+            break;
+        }
+        drawCircle(pulse_centerX, pulse_centerY, i, _pulse_color  );
+      }
+    } else {
+      pulse_centerX = random8(WIDTH - 5U) + 3U;
+      pulse_centerY = random8(HEIGHT - 5U) + 3U;
+      hue2 += deltaHue2;
+      hue = random8(0U, 255U);
+      currentRadius = random8(3U, 9U);
+      step = 0;
+    }
+    step++;
+}
+// ============= ЭФФЕКТ CНЕГ/МАТРИЦА/ДОЖДЬ ===============
 // от @Shaitan
 void RainRoutine()
 {
@@ -772,7 +875,7 @@ void RainRoutine()
       {
       if (modes[currentMode].Scale==1) drawPixelXY(x, HEIGHT - 1U, CHSV(random(0, 9) * 28, 255U, 255U)); // Радужный дождь
       else
-      if (modes[currentMode].Scale==100) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
+      if (modes[currentMode].Scale >= 100) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
       else
       drawPixelXY(x, HEIGHT - 1U, CHSV(modes[currentMode].Scale*2.4+random(0, 16),255,255)); // Цветной дождь
       }
@@ -788,9 +891,9 @@ void RainRoutine()
       drawPixelXY(x, y, getPixColorXY(x, y + 1U));
     }
   }
-}*/
-/*
-// ============= ЭФФЕКТЫ ОСАДКИ / ТУЧКА В БАНКЕ / ГРОЗА В БАНКЕ ===============
+}
+
+/*// ============= ЭФФЕКТЫ ОСАДКИ / ТУЧКА В БАНКЕ / ГРОЗА В БАНКЕ ===============
 // https://github.com/marcmerlin/FastLED_NeoMatrix_SmartMatrix_LEDMatrix_GFX_Demos/blob/master/FastLED/Sublime_Demos/Sublime_Demos.ino
 // там по ссылке ещё остались эффекты с 3 по 9 (в SimplePatternList перечислены)
 
@@ -806,13 +909,6 @@ void RainRoutine()
 // uint8_t *splashArray; = line[WIDTH] из эффекта Огонь
 
 CRGB solidRainColor = CRGB(60,80,90);
-
-uint8_t wrapX(int8_t x){
-  return (x + WIDTH)%WIDTH;
-}
-uint8_t wrapY(int8_t y){
-  return (y + HEIGHT)%HEIGHT;
-}
 
 void rain(byte backgroundDepth, byte maxBrightness, byte spawnFreq, byte tailLength, CRGB rainColor, bool splashes, bool clouds, bool storm)
 {
@@ -1086,11 +1182,9 @@ void Fire2018_2() {
 
 }
 */
-
-
 //далее будут эффекты заточены для лампы в.1 лиш нужно припаять ленты как матрицу(паралельная или зигзаг)
 
-// ****************************** ОГОНЁК ****************************** разный тип матрицы - выглядить будет по разному
+/*// ****************************** ОГОНЁК ****************************** разный тип матрицы - выглядить будет по разному
 int16_t position;
 boolean direction;
 #define TRACK_STEP3 100
@@ -1110,7 +1204,7 @@ void lighter() {
   }
   leds[position] =  CHSV(modes[currentMode].Scale * 2.5, 255, 255);
 }
-
+*/
 // ============= ЭФФЕКТ ОГОНЬ 2012 ===============
 /*// там выше есть его копии для эффектов Водопад и Водопад 4 в 1
   // по идее, надо бы объединить и оптимизировать, но мелких отличий довольно много
@@ -1198,7 +1292,7 @@ void lighter() {
 */
 
 // ------------- светлячки --------------
-#define BALLS_AMOUNT2          (20U)                          // количество "cветлячков"
+#define BALLS_AMOUNT2          (10U)                          // количество "cветлячков"
 #define CLEAR_PATH2            (1U)                          // очищать путь
 #define BALL_TRACK2            (0U)                          // (0 / 1) - вкл/выкл следы шариков
 #define TRACK_STEP2            (70U)                         // длина хвоста шарика (чем больше цифра, тем хвост короче)
@@ -1275,7 +1369,6 @@ for (uint8_t j = 0U; j < BALLS_AMOUNT2; j++)
 #define bballsH0                (1)                  // Starting height, in meters, of the ball (strip length)
 #define bballsMaxNUM            (WIDTH * 2)          // максимальное количество мячиков прикручено при адаптации для бегунка Масштаб
 uint8_t bballsNUM;                                   // Number of bouncing balls you want (recommend < 7, but 20 is fun in its own way) ... количество мячиков теперь задаётся бегунком, а не константой
-byte hue2;
 uint8_t bballsCOLOR[bballsMaxNUM] ;                   // прикручено при адаптации для разноцветных мячиков
 uint8_t bballsX[bballsMaxNUM] ;                       // прикручено при адаптации для распределения мячиков по радиусу лампы
 bool bballsShift[bballsMaxNUM] ;                      // прикручено при адаптации для того, чтобы мячики не стояли на месте

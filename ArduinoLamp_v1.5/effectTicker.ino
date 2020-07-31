@@ -25,21 +25,26 @@ void effectsTick() {
         case 17: colorRoutine();                break;
         case 18: colorsRoutine();               break;
         case 19: whiteLamp();                   break;
-        case 20: matrixRoutine();               break;
-        case 21: snowRoutine();                 break;
-        case 22: stormRoutine2(true);           break;
-        case 23: stormRoutine2(false);          break;
-        case 24: SinusoidRoutine();             break;
-        case 25: MetaBallsRoutine();            break;
-        case 26: ballRoutine();                 break;
-        case 27: ballsRoutine();                break;
-        case 28: fire2012WithPalette();         break;
-        case 29: noiseWave(false);              break;
-        case 30: noiseWave(true);               break;
-        case 31: lighter();                     break;
-        case 32: lightersRoutine();             break;
-        case 33: BBallsRoutine();               break;
-        case 34: animation1();                  break;
+        case 20: RainRoutine();                 break;
+        case 21: stormRoutine2(true);           break;
+        case 22: stormRoutine2(false);          break;
+        case 23: SinusoidRoutine();             break;
+        case 24: MetaBallsRoutine();            break;
+        case 25: ballRoutine();                 break;
+        case 26: ballsRoutine();                break;
+        case 27: fire2012WithPalette();         break;
+        case 28: noiseWave(false);              break;
+        case 29: noiseWave(true);               break;
+        case 30: lightersRoutine();             break;
+        case 31: BBallsRoutine();               break;
+        case 32: pulseRoutine(1);               break;
+        case 33: pulseRoutine(2);               break;
+        case 34: pulseRoutine(3);               break;
+        case 35: pulseRoutine(4);               break;
+        case 36: pulseRoutine(5);               break;
+        case 37: pulseRoutine(6);               break;
+        case 38: pulseRoutine(7);               break;
+        case 39: pulseRoutine(8);               break;
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:
