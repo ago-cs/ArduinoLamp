@@ -44,6 +44,76 @@ void dimAll(uint8_t value) {
     leds[i].nscale8(value); //fadeToBlackBy
   }
 }
+void DrawLine(int x1, int y1, int x2, int y2, CRGB color)
+{
+  int deltaX = abs(x2 - x1);
+  int deltaY = abs(y2 - y1);
+  int signX = x1 < x2 ? 1 : -1;
+  int signY = y1 < y2 ? 1 : -1;
+  int error = deltaX - deltaY;
+
+  drawPixelXY(x2, y2, color);
+  while (x1 != x2 || y1 != y2) {
+      drawPixelXY(x1, y1, color);
+      int error2 = error * 2;
+      if (error2 > -deltaY) {
+          error -= deltaY;
+          x1 += signX;
+      }
+      if (error2 < deltaX) {
+          error += deltaX;
+          y1 += signY;
+      }
+  }
+}
+
+
+void drawPixelXYF(float x, float y, CRGB color)
+{
+  // extract the fractional parts and derive their inverses
+  uint8_t xx = (x - (int)x) * 255, yy = (y - (int)y) * 255, ix = 255 - xx, iy = 255 - yy;
+  // calculate the intensities for each affected pixel
+  #define WU_WEIGHT(a,b) ((uint8_t) (((a)*(b)+(a)+(b))>>8))
+  uint8_t wu[4] = {WU_WEIGHT(ix, iy), WU_WEIGHT(xx, iy),
+                   WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)};
+  // multiply the intensities by the colour, and saturating-add them to the pixels
+  for (uint8_t i = 0; i < 4; i++) {
+    int16_t xn = x + (i & 1), yn = y + ((i >> 1) & 1);
+    CRGB clr = getPixColorXY(xn, yn);
+    clr.r = qadd8(clr.r, (color.r * wu[i]) >> 8);
+    clr.g = qadd8(clr.g, (color.g * wu[i]) >> 8);
+    clr.b = qadd8(clr.b, (color.b * wu[i]) >> 8);
+    drawPixelXY(xn, yn, clr);
+  }
+}
+
+void drawCircleF(float x0, float y0, float radius, CRGB color){
+  float x = 0, y = radius, error = 0;
+  float delta = 1 - 2 * radius;
+
+  while (y >= 0) {
+    drawPixelXYF(x0 + x, y0 + y, color);
+    drawPixelXYF(x0 + x, y0 - y, color);
+    drawPixelXYF(x0 - x, y0 + y, color);
+    drawPixelXYF(x0 - x, y0 - y, color);
+    error = 2 * (delta + y) - 1;
+    if (delta < 0 && error <= 0) {
+      ++x;
+      delta += 2 * x + 1;
+      continue;
+    }
+    error = 2 * (delta - x) - 1;
+    if (delta > 0 && error > 0) {
+      --y;
+      delta += 1 - 2 * y;
+      continue;
+    }
+    ++x;
+    delta += 2 * (x - y);
+    --y;
+  }
+}
+
 // --------------------------------- конфетти ------------------------------------
 #define FADE_OUT_SPEED        (70U)                         // скорость затухания
 void sparklesRoutine()
@@ -87,145 +157,120 @@ void fadePixel(uint8_t i, uint8_t j, uint8_t step)          // новый фей
   }
 }
 // -------------------------------------- огонь ---------------------------------------------
-#define SPARKLES              (1U)                     // вылетающие угольки вкл выкл
-#define UNIVERSE_FIRE                                  // универсальный огонь 2-в-1 Цветной+Белый
-//uint8_t pcnt = 0U;                                     // внутренний делитель кадров для поднимающегося пламени - переменная вынесена в общий пул, чтобы использовать повторно
-//uint8_t deltaHue = 16U;                                // текущее смещение пламени (hueMask) - переменная вынесена в общий пул, чтобы использовать повторно
-//uint8_t shiftHue[HEIGHT];                              // массив дороожки горизонтального смещения пламени (hueMask) - вынесен в общий пул массивов переменных
-//uint8_t deltaValue = 16U;                              // текущее смещение пламени (hueValue) - переменная вынесена в общий пул, чтобы использовать повторно
-//uint8_t shiftValue[HEIGHT];                            // массив дороожки горизонтального смещения пламени (hueValue) - вынесен в общий пул массивов переменных
+#define SPARKLES 1        // вылетающие угольки вкл выкл
 //these values are substracetd from the generated values to give a shape to the animation
-static const uint8_t valueMask[8][16] PROGMEM =
-{
-  {0  , 0  , 0  , 32 , 32 , 0  , 0  , 0  , 0  , 0  , 0  , 32 , 32 , 0  , 0  , 0  },
-  {0  , 0  , 0  , 64 , 64 , 0  , 0  , 0  , 0  , 0  , 0  , 64 , 64 , 0  , 0  , 0  },
-  {0  , 0  , 32 , 96 , 96 , 32 , 0  , 0  , 0  , 0  , 32 , 96 , 96 , 32 , 0  , 0  },
-  {0  , 32 , 64 , 128, 128, 64 , 32 , 0  , 0  , 32 , 64 , 128, 128, 64 , 32 , 0  },
-  {32 , 64 , 96 , 160, 160, 96 , 64 , 32 , 32 , 64 , 96 , 160, 160, 96 , 64 , 32 },
-  {64 , 96 , 128, 192, 192, 128, 96 , 64 , 64 , 96 , 128, 192, 192, 128, 96 , 64 },
-  {96 , 128, 160, 255, 255, 160, 128, 96 , 96 , 128, 160, 255, 255, 160, 128, 96 },
-  {128, 160, 192, 255, 255, 192, 160, 128, 128, 160, 192, 255, 255, 192, 160, 128}
+const unsigned char valueMask[8][16] PROGMEM = {
+  {32 , 0  , 0  , 0  , 0  , 0  , 0  , 32 , 32 , 0  , 0  , 0  , 0  , 0  , 0  , 32 },
+  {64 , 0  , 0  , 0  , 0  , 0  , 0  , 64 , 64 , 0  , 0  , 0  , 0  , 0  , 0  , 64 },
+  {96 , 32 , 0  , 0  , 0  , 0  , 32 , 96 , 96 , 32 , 0  , 0  , 0  , 0  , 32 , 96 },
+  {128, 64 , 32 , 0  , 0  , 32 , 64 , 128, 128, 64 , 32 , 0  , 0  , 32 , 64 , 128},
+  {160, 96 , 64 , 32 , 32 , 64 , 96 , 160, 160, 96 , 64 , 32 , 32 , 64 , 96 , 160},
+  {192, 128, 96 , 64 , 64 , 96 , 128, 192, 192, 128, 96 , 64 , 64 , 96 , 128, 192},
+  {255, 160, 128, 96 , 96 , 128, 160, 255, 255, 160, 128, 96 , 96 , 128, 160, 255},
+  {255, 192, 160, 128, 128, 160, 192, 255, 255, 192, 160, 128, 128, 160, 192, 255}
 };
 
 //these are the hues for the fire,
 //should be between 0 (red) to about 25 (yellow)
-static const uint8_t hueMask[8][16] PROGMEM =
-{
-  {25, 22, 11, 1 , 1 , 11, 19, 25, 25, 22, 11, 1 , 1 , 11, 19, 25 },
-  {25, 19, 8 , 1 , 1 , 8 , 13, 19, 25, 19, 8 , 1 , 1 , 8 , 13, 19 },
-  {19, 16, 8 , 1 , 1 , 8 , 13, 16, 19, 16, 8 , 1 , 1 , 8 , 13, 16 },
-  {13, 13, 5 , 1 , 1 , 5 , 11, 13, 13, 13, 5 , 1 , 1 , 5 , 11, 13 },
-  {11, 11, 5 , 1 , 1 , 5 , 11, 11, 11, 11, 5 , 1 , 1 , 5 , 11, 11 },
-  {8 , 5 , 1 , 0 , 0 , 1 , 5 , 8 , 8 , 5 , 1 , 0 , 0 , 1 , 5 , 8  },
-  {5 , 1 , 0 , 0 , 0 , 0 , 1 , 5 , 5 , 1 , 0 , 0 , 0 , 0 , 1 , 5  },
-  {1 , 0 , 0 , 0 , 0 , 0 , 0 , 1 , 1 , 0 , 0 , 0 , 0 , 0 , 0 , 1  }
+const unsigned char hueMask[8][16] PROGMEM = {
+  {1 , 11, 19, 25, 25, 22, 11, 1 , 1 , 11, 19, 25, 25, 22, 11, 1 },
+  {1 , 8 , 13, 19, 25, 19, 8 , 1 , 1 , 8 , 13, 19, 25, 19, 8 , 1 },
+  {1 , 8 , 13, 16, 19, 16, 8 , 1 , 1 , 8 , 13, 16, 19, 16, 8 , 1 },
+  {1 , 5 , 11, 13, 13, 13, 5 , 1 , 1 , 5 , 11, 13, 13, 13, 5 , 1 },
+  {1 , 5 , 11, 11, 11, 11, 5 , 1 , 1 , 5 , 11, 11, 11, 11, 5 , 1 },
+  {0 , 1 , 5 , 8 , 8 , 5 , 1 , 0 , 0 , 1 , 5 , 8 , 8 , 5 , 1 , 0 },
+  {0 , 0 , 1 , 5 , 5 , 1 , 0 , 0 , 0 , 0 , 1 , 5 , 5 , 1 , 0 , 0 },
+  {0 , 0 , 0 , 1 , 1 , 0 , 0 , 0 , 0 , 0 , 0 , 1 , 1 , 0 , 0 , 0 }
 };
-void fireRoutine(bool isColored) // <- ******* для оригинальной прошивки Gunner47 ******* (раскомментить/закоментить)
-{
+
+void fireRoutine() {
   if (loadingFlag) {
     loadingFlag = false;
     //FastLED.clear();
     generateLine();
-    //memset(matrixValue, 0, sizeof(matrixValue)); без очистки
+  }
+  if (pcnt >= 100) {
+    shiftUp();
+    generateLine();
     pcnt = 0;
   }
-  if (pcnt >= 30) {                                         // внутренний делитель кадров для поднимающегося пламени
-    shiftUp();                                              // смещение кадра вверх
-    generateLine();                                         // перерисовать новую нижнюю линию случайным образом
-    pcnt = 0;
-  }
-  //  drawFrame(pcnt, (strcmp(isColored, "C") == 0));           // прорисовка экрана
-  drawFrame(pcnt, isColored);                              // для прошивки где стоит логический параметр
-  pcnt += 25;  // делитель кадров: задает скорость подъема пламени 25/100 = 1/4
+  drawFrame(pcnt);
+  pcnt += 30;
 }
-// Randomly generate the next line (matrix row)
+
+// Случайным образом генерирует следующую линию (matrix row)
+
 void generateLine() {
-  for (uint8_t x = 0U; x < WIDTH; x++) {
-    line[x] = random(127, 255);                             // заполнение случайным образом нижней линии (127, 255) - менее контрастное, (64, 255) - оригинал
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    line[x] = random(128, 255);
   }
 }
-void shiftUp() {                                            //подъем кадра
-  for (uint8_t y = HEIGHT - 1U; y > 0U; y--) {
-    for (uint8_t x = 0U; x < WIDTH; x++) {
-      uint8_t newX = x % 16U;                               // сократил формулу без доп. проверок
-      if (y > 7U) continue;
-      matrixValue[y][newX] = matrixValue[y - 1U][newX];     //смещение пламени (только для зоны очага)
+
+void shiftUp() {
+  for (uint8_t y = HEIGHT - 1; y > 0; y--) {
+    for (uint8_t x = 0; x < WIDTH; x++) {
+      uint8_t newX = x;
+      if (x > 15) newX = x - 15;
+      if (y > 7) continue;
+      matrixValue[y][newX] = matrixValue[y - 1][newX];
     }
   }
-  for (uint8_t x = 0U; x < WIDTH; x++) {                    // прорисовка новой нижней линии
-    uint8_t newX = x % 16U;                                 // сократил формулу без доп. проверок
-    matrixValue[0U][newX] = line[newX];
+
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    uint8_t newX = x;
+    if (x > 15) newX = x - 15;
+    matrixValue[0][newX] = line[newX];
   }
 }
-// draw a frame, interpolating between 2 "key frames"
-// @param pcnt percentage of interpolation
-void drawFrame(uint8_t pcnt, bool isColored) {                  // прорисовка нового кадра
-  int32_t nextv;
-#ifdef UNIVERSE_FIRE                                            // если определен универсальный огонь  
-  //  uint8_t baseHue = (float)modes[currentMode].Scale * 2.55;
-  uint8_t baseHue = (float)(modes[currentMode].Scale - 1U) * 2.6;
-#else
-  uint8_t baseHue = isColored ? 255U : 0U;
-#endif
-  uint8_t baseSat = (modes[currentMode].Scale < 100) ? 255U : 0U;  // вычисление базового оттенка
-  //first row interpolates with the "next" line
-  deltaHue = random(0U, 2U) ? constrain (shiftHue[0] + random(0U, 2U) - random(0U, 2U), 15U, 17U) : shiftHue[0]; // random(0U, 2U)= скорость смещения языков чем больше 2U - тем медленнее
-  // 15U, 17U - амплитуда качания -1...+1 относительно 16U
-  // высчитываем плавную дорожку смещения всполохов для нижней строки
-  // так как в последствии координаты точки будут исчисляться из остатка, то за базу можем принять кратную ширину матрицы hueMask
-  // ширина матрицы hueMask = 16, поэтому нам нужно получить диапазон чисел от 15 до 17
-  // далее к предыдущему значению прибавляем случайную 1 и отнимаем случайную 1 - это позволит плавным образом менять значение смещения
-  shiftHue[0] = deltaHue;                                   // заносим это значение в стэк
-  deltaValue = random(0U, 3U) ? constrain (shiftValue[0] + random(0U, 2U) - random(0U, 2U), 15U, 17U) : shiftValue[0]; // random(0U, 3U)= скорость смещения очага чем больше 3U - тем медленнее
-  // 15U, 17U - амплитуда качания -1...+1 относительно 16U
-  shiftValue[0] = deltaValue;
-  for (uint8_t x = 0U; x < WIDTH; x++) {                                          // прорисовка нижней строки (сначала делаем ее, так как потом будем пользоваться ее значением смещения)
-    uint8_t newX = x % 16;                                                        // сократил формулу без доп. проверок
-    nextv =                                                               // расчет значения яркости относительно valueMask и нижерасположенной строки.
-      (((100.0 - pcnt) * matrixValue[0][newX] + pcnt * line[newX]) / 100.0)
-      - pgm_read_byte(&valueMask[0][(x + deltaValue) % 16U]);
-    CRGB color = CHSV(                                                            // вычисление цвета и яркости пикселя
-                   baseHue + pgm_read_byte(&hueMask[0][(x + deltaHue) % 16U]),    // H - смещение всполохов
-                   baseSat,                                                       // S - когда колесо масштаба =100 - белый огонь (экономим на 1 эффекте)
-                   (uint8_t)max(0, nextv)                                         // V
-                 );
-    leds[XY(x, 0)] = color;                                            // прорисовка цвета очага
-  }
+
+// рисует кадр, интерполируя между 2 "ключевых кадров"
+// параметр pcnt - процент интерполяции
+
+void drawFrame(int pcnt) {
+  int nextv;
+
   //each row interpolates with the one before it
-  for (uint8_t y = HEIGHT - 1U; y > 0U; y--) {                                      // прорисовка остальных строк с учетом значения низлежащих
-    deltaHue = shiftHue[y];                                                         // извлекаем положение
-    shiftHue[y] = shiftHue[y - 1];                                                  // подготавлеваем значение смешения для следующего кадра основываясь на предыдущем
-    deltaValue = shiftValue[y];                                                     // извлекаем положение
-    shiftValue[y] = shiftValue[y - 1];                                              // подготавлеваем значение смешения для следующего кадра основываясь на предыдущем
-    if (y > 8U) {                                                                   // цикл стирания текущей строоки для искр
-      for (uint8_t _x = 0U; _x < WIDTH; _x++) {                                     // стираем строчку с искрами (очень не оптимально)
-        drawPixelXY(_x, y, 0U);
-      }
-    }
-    for (uint8_t x = 0U; x < WIDTH; x++) {                                          // пересчет координаты x для текущей строки
-      uint8_t newX = x % 16U;                                                       // функция поиска позиции значения яркости для матрицы valueMask
-      if (y < 8U) {                                                                 // если строка представляет очаг
-        nextv =                                                                     // расчет значения яркости относительно valueMask и нижерасположенной строки.
+  for (unsigned char y = HEIGHT - 1; y > 0; y--) {
+    for (unsigned char x = 0; x < WIDTH; x++) {
+      uint8_t newX = x;
+      if (x > 15) newX = x - 15;
+      if (y < 8) {
+        nextv =
           (((100.0 - pcnt) * matrixValue[y][newX]
             + pcnt * matrixValue[y - 1][newX]) / 100.0)
-          - pgm_read_byte(&valueMask[y][(x + deltaValue) % 16U]);
-        CRGB color = CHSV(                                                                  // определение цвета пикселя
-                       baseHue + pgm_read_byte(&hueMask[y][(x + deltaHue) % 16U ]),         // H - смещение всполохов
-                       baseSat,                                                             // S - когда колесо масштаба =100 - белый огонь (экономим на 1 эффекте)
-                       (uint8_t)max(0, nextv)                                               // V
+          - pgm_read_byte(&(valueMask[y][newX]));
+
+        CRGB color = CHSV(
+                       modes[currentMode].Scale * 2.5 + pgm_read_byte(&(hueMask[y][newX])), // H
+                       255, // S
+                       (uint8_t)max(0, nextv) // V
                      );
-        leds[XY(x, y)] = color;
-      }
-      else if (y == 8U && SPARKLES) {                                               // если это самая нижняя строка искр - формитуем искорку из пламени
-        if (random(0, 20) == 0 && getPixColorXY(x, y - 1U) != 0U) drawPixelXY(x, y, getPixColorXY(x, y - 2U));  // 20 = обратная величина количества искр
-        else drawPixelXY(x, y, 0U);
-      }
-      else if (SPARKLES) {                                                          // если это не самая нижняя строка искр - перемещаем искорку выше
+
+        leds[getPixelNumber(x, y)] = color;
+      } else if (y == 8 && SPARKLES) {
+        if (random(0, 20) == 0 && getPixColorXY(x, y - 1) != 0) drawPixelXY(x, y, getPixColorXY(x, y - 1));
+        else drawPixelXY(x, y, 0);
+      } else if (SPARKLES) {
+
         // старая версия для яркости
-        newX = (random(0, 4)) ? x : (x + WIDTH + random(0U, 2U) - random(0U, 2U)) % WIDTH ;   // с вероятностью 1/3 смещаем искорку влево или вправо
-        if (getPixColorXY(x, y - 1U) > 0U) drawPixelXY(newX, y, getPixColorXY(x, y - 1U));    // рисуем искорку на новой строчке
+        if (getPixColorXY(x, y - 1) > 0)
+          drawPixelXY(x, y, getPixColorXY(x, y - 1));
+        else drawPixelXY(x, y, 0);
+
       }
     }
+  }
+
+  //Перавя стрка интерполируется со следующей "next" линией
+  for (unsigned char x = 0; x < WIDTH; x++) {
+    uint8_t newX = x;
+    if (x > 15) newX = x - 15;
+    CRGB color = CHSV(
+                   modes[currentMode].Scale * 2.5 + pgm_read_byte(&(hueMask[0][newX])), // H
+                   255,           // S
+                   (uint8_t)(((100.0 - pcnt) * matrixValue[0][newX] + pcnt * line[newX]) / 100.0) // V
+                 );
+    leds[getPixelNumber(newX, 0)] = color;
   }
 }
 // ---------------------------------------- радуга ------------------------------------------
@@ -1358,13 +1403,13 @@ for (uint8_t j = 0U; j < BALLS_AMOUNT2; j++)
 }
 }
 
-// --------------------------- эффект мячики ----------------------
+/*// --------------------------- эффект мячики ----------------------
 //  BouncingBalls2014 is a program that lets you animate an LED strip
 //  to look like a group of bouncing balls
 //  Daniel Wilson, 2014
 //  https://github.com/githubcdr/Arduino/blob/master/bouncingballs/bouncingballs.ino
 //  With BIG thanks to the FastLED community!
-//  адаптация от SottNick
+*/ //  адаптация от SottNick
 #define bballsGRAVITY           (-9.81)              // Downward (negative) acceleration of gravity in m/s^2
 #define bballsH0                (1)                  // Starting height, in meters, of the ball (strip length)
 #define bballsMaxNUM            (WIDTH * 2)          // максимальное количество мячиков прикручено при адаптации для бегунка Масштаб
@@ -1377,7 +1422,7 @@ float bballsVImpact[bballsMaxNUM] ;                   // As time goes on the imp
 uint16_t   bballsPos[bballsMaxNUM] ;                       // The integer position of the dot on the strip (LED index)
 long  bballsTLast[bballsMaxNUM] ;                     // The clock time of the last ground strike
 float bballsCOR[bballsMaxNUM] ;                       // Coefficient of Restitution (bounce damping)
-
+/*
 void BBallsRoutine() {
   if (loadingFlag)
   {
@@ -1435,4 +1480,105 @@ void BBallsRoutine() {
     }
     leds[XY(bballsX[i], bballsPos[i])] = CHSV(bballsCOLOR[i] + deltaHue, hue2, 255U);
   }
+}*/
+// ------------------------------ ЭФФЕКТ ПРЫГУНЫ ----------------------
+// стырено откуда-то by @obliterator
+// https://github.com/DmytroKorniienko/FireLamp_JeeUI/blob/templ/src/effects.cpp
+
+//Leaper leapers[20];
+//вместо класса Leaper будем повторно использовать переменные из эффекта мячики
+//float x, y; будет:
+float leaperX[bballsMaxNUM];
+float leaperY[bballsMaxNUM];
+//float xd, yd; будет:
+////float bballsVImpact[bballsMaxNUM];                   // As time goes on the impact velocity will change, so make an array to store those values
+////float bballsCOR[bballsMaxNUM];                       // Coefficient of Restitution (bounce damping)
+//CHSV color; будет:
+////uint8_t bballsCOLOR[bballsMaxNUM];
+
+void LeapersRestart_leaper(uint8_t l) {
+  // leap up and to the side with some random component
+  bballsVImpact[l] = (1 * (float)random8(1, 100) / 100);
+  bballsCOR[l] = (2 * (float)random8(1, 100) / 100);
+
+  // for variety, sometimes go 50% faster
+  if (random8() < 12) {
+    bballsVImpact[l] += bballsVImpact[l] * 0.5;
+    bballsCOR[l] += bballsCOR[l] * 0.5;
+  }
+
+  // leap towards the centre of the screen
+  if (leaperX[l] > (WIDTH / 2)) {
+    bballsVImpact[l] = -bballsVImpact[l];
+  }
+}
+
+void LeapersMove_leaper(uint8_t l) {
+#define GRAVITY            0.06
+#define SETTLED_THRESHOLD  0.1
+#define WALL_FRICTION      0.95
+#define WIND               0.95    // wind resistance
+
+  leaperX[l] += bballsVImpact[l];
+  leaperY[l] += bballsCOR[l];
+
+  // bounce off the floor and ceiling?
+  if (leaperY[l] < 0 || leaperY[l] > HEIGHT - 1) {
+    bballsCOR[l] = (-bballsCOR[l] * WALL_FRICTION);
+    bballsVImpact[l] = ( bballsVImpact[l] * WALL_FRICTION);
+    leaperY[l] += bballsCOR[l];
+    if (leaperY[l] < 0) leaperY[l] = 0;
+    // settled on the floor?
+    if (leaperY[l] <= SETTLED_THRESHOLD && fabs(bballsCOR[l]) <= SETTLED_THRESHOLD) {
+      LeapersRestart_leaper(l);
+    }
+  }
+
+  // bounce off the sides of the screen?
+  if (leaperX[l] <= 0 || leaperX[l] >= WIDTH - 1) {
+    bballsVImpact[l] = (-bballsVImpact[l] * WALL_FRICTION);
+    if (leaperX[l] <= 0) {
+      leaperX[l] = bballsVImpact[l];
+    } else {
+      leaperX[l] = WIDTH - 1 - bballsVImpact[l];
+    }
+  }
+
+  bballsCOR[l] -= GRAVITY;
+  bballsVImpact[l] *= WIND;
+  bballsCOR[l] *= WIND;
+}
+
+
+void LeapersRoutine(){
+  //unsigned num = map(scale, 0U, 255U, 6U, sizeof(boids) / sizeof(*boids));
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette();    
+    //FastLED.clear();
+    //bballsNUM = (modes[currentMode].Scale - 1U) / 99.0 * (bballsMaxNUM - 1U) + 1U;
+    bballsNUM = (modes[currentMode].Scale - 1U) % 11U / 10.0 * (bballsMaxNUM - 1U) + 1U;
+    if (bballsNUM > bballsMaxNUM) bballsNUM = bballsMaxNUM;
+    //if (bballsNUM < 2U) bballsNUM = 2U;
+
+    for (uint8_t i = 0 ; i < bballsNUM ; i++) {
+      leaperX[i] = random8(WIDTH);
+      leaperY[i] = random8(HEIGHT);
+
+      //curr->color = CHSV(random(1U, 255U), 255U, 255U);
+      bballsCOLOR[i] = random8();
+    }
+  }
+
+  //myLamp.dimAll(0); накой хрен делать затухание на 100%?
+  FastLED.clear();
+
+  for (uint8_t i = 0; i < bballsNUM; i++) {
+    LeapersMove_leaper(i);
+    //drawPixelXYF(leaperX[i], leaperY[i], CHSV(bballsCOLOR[i], 255U, 255U));
+    drawPixelXYF(leaperX[i], leaperY[i], ColorFromPalette(*curPalette, bballsCOLOR[i]));
+  };
+
+  blurScreen(20);
 }

@@ -49,7 +49,7 @@ void rainbowNoise()
     speed = modes[currentMode].Speed;
     colorLoop = 1;
   }
-  fillNoiseLED();
+  fillNoiseLED(true,true,true);
 }
 
 void rainbowStripeNoise()
@@ -62,7 +62,7 @@ void rainbowStripeNoise()
     speed = modes[currentMode].Speed;
     colorLoop = 1;
   }
-  fillNoiseLED();
+  fillNoiseLED(true,true,true);
 }
 
 void zebraNoise()
@@ -81,7 +81,7 @@ void zebraNoise()
     speed = modes[currentMode].Speed;
     colorLoop = 1;
   }
-  fillNoiseLED();
+  fillNoiseLED(true,true,true);
 }
 
 void forestNoise()
@@ -94,7 +94,7 @@ void forestNoise()
     speed = modes[currentMode].Speed;
     colorLoop = 0;
   }
-  fillNoiseLED();
+  fillNoiseLED(true,true,true);
 }
 
 void oceanNoise()
@@ -108,7 +108,7 @@ void oceanNoise()
     colorLoop = 0;
   }
 
-  fillNoiseLED();
+  fillNoiseLED(true,true,true);
 }
 
 void plasmaNoise()
@@ -121,7 +121,7 @@ void plasmaNoise()
     speed = modes[currentMode].Speed;
     colorLoop = 1;
   }
-  fillNoiseLED();
+  fillNoiseLED(true,true,true);
 }
 
 void cloudNoise()
@@ -134,7 +134,7 @@ void cloudNoise()
     speed = modes[currentMode].Speed;
     colorLoop = 0;
   }
-  fillNoiseLED();
+  fillNoiseLED(true,true,true);
 }
 
 void lavaNoise()
@@ -147,7 +147,7 @@ void lavaNoise()
     speed = modes[currentMode].Speed;
     colorLoop = 0;
   }
-  fillNoiseLED();
+  fillNoiseLED(true,true,true);
 }
 
 void heatNoise()
@@ -160,7 +160,7 @@ void heatNoise()
     speed = modes[currentMode].Speed;
     colorLoop = 0;
   }
-  fillNoiseLED();
+  fillNoiseLED(false,true,false);
 }
 
 void smokeNoise()
@@ -173,11 +173,11 @@ void smokeNoise()
     speed = modes[currentMode].Speed;
     colorLoop = 0;
   }
-  fillNoiseLED();
+  fillNoiseLED(false,true,false);
 }
 
 // ************* СЛУЖЕБНЫЕ *************
-void fillNoiseLED()
+void fillNoiseLED(bool x_dir, bool y_dir, bool z_dir)
 {
   uint8_t dataSmoothing = 0;
   if (speed < 50)
@@ -206,11 +206,16 @@ void fillNoiseLED()
       noise[i][j] = data;
     }
   }
+  if(z_dir)
   z += speed;
 
   // apply slow drift to X and Y, just for visual variation.
-  x += speed / 8;
-  y -= speed / 16;
+  if(x_dir){ if((z_dir)&&(x_dir))
+  x += speed /8;}
+  else x -= speed;
+  if(y_dir){ if((z_dir)&&(y_dir))
+  y -= speed / 16;}
+  else y -= speed;
 
   for (uint8_t i = 0; i < WIDTH; i++)
   {
