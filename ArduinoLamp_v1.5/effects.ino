@@ -938,7 +938,7 @@ void RainRoutine()
   }
 }
 
-/*// ============= ЭФФЕКТЫ ОСАДКИ / ТУЧКА В БАНКЕ / ГРОЗА В БАНКЕ ===============
+// ============= ЭФФЕКТЫ ОСАДКИ / ТУЧКА В БАНКЕ / ГРОЗА В БАНКЕ ===============
 // https://github.com/marcmerlin/FastLED_NeoMatrix_SmartMatrix_LEDMatrix_GFX_Demos/blob/master/FastLED/Sublime_Demos/Sublime_Demos.ino
 // там по ссылке ещё остались эффекты с 3 по 9 (в SimplePatternList перечислены)
 
@@ -1115,7 +1115,6 @@ void stormyRain()
   //rain(0, 90, map8(intensity,0,150)+60, 10, solidRainColor, true, true, true);
   rain(60, 160, (modes[currentMode].Scale-1) * 2.58, 30, solidRainColor, true, true, true);
 }
-*/
 /*// ============= ЭФФЕКТ ОГОНЬ 2018 ===============
 // https://gist.github.com/StefanPetrick/819e873492f344ebebac5bcd2fdd8aa8
 // https://gist.github.com/StefanPetrick/1ba4584e534ba99ca259c1103754e4c5
@@ -1403,13 +1402,13 @@ for (uint8_t j = 0U; j < BALLS_AMOUNT2; j++)
 }
 }
 
-/*// --------------------------- эффект мячики ----------------------
+// --------------------------- эффект мячики ----------------------
 //  BouncingBalls2014 is a program that lets you animate an LED strip
 //  to look like a group of bouncing balls
 //  Daniel Wilson, 2014
 //  https://github.com/githubcdr/Arduino/blob/master/bouncingballs/bouncingballs.ino
 //  With BIG thanks to the FastLED community!
-*/ //  адаптация от SottNick
+//  адаптация от SottNick
 #define bballsGRAVITY           (-9.81)              // Downward (negative) acceleration of gravity in m/s^2
 #define bballsH0                (1)                  // Starting height, in meters, of the ball (strip length)
 #define bballsMaxNUM            (WIDTH * 2)          // максимальное количество мячиков прикручено при адаптации для бегунка Масштаб
@@ -1422,7 +1421,7 @@ float bballsVImpact[bballsMaxNUM] ;                   // As time goes on the imp
 uint16_t   bballsPos[bballsMaxNUM] ;                       // The integer position of the dot on the strip (LED index)
 long  bballsTLast[bballsMaxNUM] ;                     // The clock time of the last ground strike
 float bballsCOR[bballsMaxNUM] ;                       // Coefficient of Restitution (bounce damping)
-/*
+
 void BBallsRoutine() {
   if (loadingFlag)
   {
@@ -1480,8 +1479,8 @@ void BBallsRoutine() {
     }
     leds[XY(bballsX[i], bballsPos[i])] = CHSV(bballsCOLOR[i] + deltaHue, hue2, 255U);
   }
-}*/
-// ------------------------------ ЭФФЕКТ ПРЫГУНЫ ----------------------
+}
+/*// ------------------------------ ЭФФЕКТ ПРЫГУНЫ ----------------------
 // стырено откуда-то by @obliterator
 // https://github.com/DmytroKorniienko/FireLamp_JeeUI/blob/templ/src/effects.cpp
 
@@ -1581,4 +1580,4 @@ void LeapersRoutine(){
   };
 
   blurScreen(20);
-}
+}*/
