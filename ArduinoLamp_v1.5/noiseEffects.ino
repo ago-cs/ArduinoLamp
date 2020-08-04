@@ -262,7 +262,7 @@ void fillNoiseLED(byte x_dir, byte y_dir, byte z_dir)
         bri = dim8_raw( bri * 2);
       }
       CRGB color = ColorFromPalette( currentPalette, index, bri);
-      drawPixelXY(i, j, color);                             //leds[XY(i, j)] = color;
+      leds[XY(i, j)] = color;
     }
   }
   ihue += 1;
