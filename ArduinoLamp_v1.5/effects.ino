@@ -1339,7 +1339,7 @@ if (x2<WIDTH && y2<HEIGHT) // добавил проверки. не знаю, п
 
 // ******************************** СИНУСОИДЫ *******************************
   #define WAVES_AMOUNT 2    // количество синусоид
-  #define DEG_TO_RAD 0.017453
+ #define DEG_TO_RAD 0.017453
   int t;
   byte w[WAVES_AMOUNT];
   byte phi[WAVES_AMOUNT];
@@ -1356,7 +1356,9 @@ if (x2<WIDTH && y2<HEIGHT) // добавил проверки. не знаю, п
       A[j] = HEIGHT / 2 * random(4, 11) / 10;
       waveColors[j] = CHSV(random(0, 9) * 28, 255, 255);
     }
-  
+  }
+ 
+
     // сдвигаем все пиксели вправо
     for (int i = WIDTH - 1; i > 0; i--)
       for (int j = 0; j < HEIGHT; j++)
@@ -1376,7 +1378,7 @@ if (x2<WIDTH && y2<HEIGHT) // добавил проверки. не знаю, п
       float value = HEIGHT / 2 + (float)A[j] * sin((float)w[j] * t * DEG_TO_RAD + (float)phi[j] * DEG_TO_RAD);
       leds[getPixelNumber(0, (byte)value)] = waveColors[j];
     }
-  }
+  
   }
   
 //далее будут эффекты заточены для лампы в.1 лиш нужно припаять ленты как матрицу(паралельная или зигзаг)

@@ -42,13 +42,13 @@ void effectsTick() {
         case 34: wavesRoutine();                break;
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
-        //case 1:
+        case 1:
           ind = sqrt(modes[currentMode].Brightness + 1);
           for (byte y = 0; y < HEIGHT ; y++) {
             if (ind > y) drawPixelXY(0, y, CHSV(10, 255, 255));
             else drawPixelXY(0, y,  0);
           }
-          break;//
+          break;
         case 2:
           ind = sqrt(modes[currentMode].Speed - 1);
           for (byte y = 0; y <= HEIGHT ; y++) {
