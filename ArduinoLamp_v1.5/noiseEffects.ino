@@ -50,7 +50,7 @@ void madnessNoise()
     for (uint8_t j = 0; j < HEIGHT; j++)
     {
       CRGB thisColor = CHSV(noise[j][i], 255, noise[i][j]);
-      drawPixelXY(i, j, thisColor);                         //leds[XY(i, j)] = CHSV(noise[j][i], 255, noise[i][j]);
+      leds[XY(i, j)] = CHSV(noise[j][i], 255, noise[i][j]);
     }
   }
   ihue += 1;
@@ -237,8 +237,8 @@ void fillNoiseLED(byte x_dir, byte y_dir, byte z_dir)
     }
   }
   z += speed*z_dir;
-  x += speed*x_dir;
-  y -= speed*y_dir;
+  x -= speed*x_dir;
+  y += speed*y_dir;
 
   for (uint8_t i = 0; i < WIDTH; i++)
   {
