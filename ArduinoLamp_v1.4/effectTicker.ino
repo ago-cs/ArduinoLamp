@@ -26,12 +26,8 @@ void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 5 ||
    case 22: snowRoutine();                 break;
    case 23: stormRoutine2(true);           break;
    case 24: stormRoutine2(false);          break;
-   case 25: SinusoidRoutine();             break;
-   case 26: MetaBallsRoutine();            break;
-   case 27: ballRoutine();                 break;
-   case 28: ballsRoutine();                break;
-   case 29: noiseWave(false);              break;
-   case 30: noiseWave(true);               break;
+   case 25: ballRoutine();                 break;
+   case 26: ballsRoutine();                break;
 }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:
