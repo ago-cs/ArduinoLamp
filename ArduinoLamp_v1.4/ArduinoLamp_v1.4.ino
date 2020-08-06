@@ -10,7 +10,6 @@
 #include <FastLED.h>
 #include <GyverButton.h>
 //-----------------            -----------------
-#include "bitmap2.h"
 #include "Constants.h"
 // ----------------- ПЕРЕМЕННЫЕ ------------------
 static const byte maxDim = max(WIDTH, HEIGHT);
@@ -51,4 +50,13 @@ void setup() {
 void loop() {
   effectsTick();
   buttonTick();
+  demo();
+}
+void demo(){
+  if (isDemo && ONflag && millis() >= DemTimer){
+    //currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
+    currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
+    FastLED.clear();
+    DemTimer = millis() + DEMOTIMELIMIT;
+    loadingFlag = true;}
 }
