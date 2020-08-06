@@ -25,6 +25,7 @@
 // ------------------- ТИПЫ --------------------
 CRGB leds[NUM_LEDS];
 GButton touch(BTN_PIN, HIGH_PULL, NORM_OPEN); //если сенсорна кнопка LOW_PULL
+#define RANDOM_DEMO 1                         // 0,1 - включить рандомный выбор режима
 #define  DEMOTIMELIMIT ( 1 * 20UL * 1000UL)   //  минуты/секунды/милисекунды время задержка между эффектами
 uint32_t DemTimer = 0UL;                      // тут будет храниться время следующего переключения эффекта
 bool isDemo = false;   
