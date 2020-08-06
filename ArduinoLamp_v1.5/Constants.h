@@ -31,5 +31,6 @@ struct {
   byte Scale = 10;
 } modes[MODE_AMOUNT]; //настройки эффекта по умолчанию
 #define  DEMOTIMELIMIT ( 1 * 20UL * 1000UL)   //  минуты/секунды/милисекунды время задержка между эффектами
+#define RANDOM_DEMO 1                         // 0,1 - включить рандомный выбор режима
 uint32_t DemTimer = 0UL;                      // тут будет храниться время следующего переключения эффекта
 bool isDemo = false;   

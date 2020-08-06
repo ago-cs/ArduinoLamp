@@ -195,14 +195,14 @@ void fireRoutine() {
     pcnt = 0;
   }
   drawFrame(pcnt);
-  pcnt += 30;
+  pcnt += 25;
 }
 
 // Случайным образом генерирует следующую линию (matrix row)
 
 void generateLine() {
   for (uint8_t x = 0; x < WIDTH; x++) {
-    line[x] = random(128, 255);
+    line[x] = random(127, 255);
   }
 }
 
@@ -326,7 +326,7 @@ void colorRoutine() {
 }
 
 // ------------------------------ снегопад 2.0 --------------------------------
-/*void snowRoutine() {
+void snowRoutine() {
   // сдвигаем всё вниз
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT - 1; y++) {
@@ -343,9 +343,9 @@ void colorRoutine() {
       drawPixelXY(x, HEIGHT - 1, 0x000000);
   }
 }
-*/
+
 // ------------------------------ МАТРИЦА ------------------------------
-/*void matrixRoutine() {
+void matrixRoutine() {
   for (byte x = 0; x < WIDTH; x++) {
     // заполняем случайно верхнюю строку
     uint32_t thisColor = getPixColorXY(x, HEIGHT - 1);
@@ -364,7 +364,7 @@ void colorRoutine() {
     }
   }
 }
-*/
+
 // ------------------------------ БЕЛАЯ ЛАМПА ------------------------------
 void whiteLamp() {
   for (byte y = 0; y < (HEIGHT / 2); y++) {
