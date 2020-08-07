@@ -2,9 +2,10 @@
   Скетч к проекту "Многофункциональный RGB светильник"
   Страница проекта (схемы, описания): https://alexgyver.ru/GyverLamp/
   Нравится, как написан код? Поддержи автора! https://alexgyver.ru/support_alex/
-  Автор: AlexGyver, AlexGyver Technologies, 2019(Портировал на Ардуино Norvol(+ эффекты stepko365) 
+  Автор: AlexGyver, AlexGyver Technologies, 2019(Портировал на Ардуино Norvol(+ эффекты, демо от stepko365) 
   https://AlexGyver.ru/
 */
+#define FASTLED_USE_PROGMEM 1 // просим библиотеку FASTLED экономить память контроллера на свои палитры
 // ---------------- БИБЛИОТЕКИ -----------------
 #include <EEPROM.h>
 #include <FastLED.h>
