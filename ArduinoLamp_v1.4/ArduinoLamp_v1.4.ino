@@ -5,12 +5,12 @@
   Автор: AlexGyver, AlexGyver Technologies, 2019(Портировал на Ардуино Norvol(+ эффекты, демо от stepko365) 
   https://AlexGyver.ru/
 */
-#define FASTLED_USE_PROGMEM 1 // просим библиотеку FASTLED экономить память контроллера на свои палитры
 // ---------------- БИБЛИОТЕКИ -----------------
 #include <EEPROM.h>
 #include <FastLED.h>
 #include <GyverButton.h>
 //-----------------            -----------------
+#define FASTLED_USE_PROGMEM 1 // просим библиотеку FASTLED экономить память контроллера на свои палитры
 #include "Constants.h"
 // ----------------- ПЕРЕМЕННЫЕ ------------------
 static const byte maxDim = max(WIDTH, HEIGHT);
@@ -52,14 +52,4 @@ void loop() {
   effectsTick();
   buttonTick();
   demo();
-}
-void demo(){
-  if (isDemo && ONflag && millis() >= DemTimer){
-    if(RANDOM_DEMO)
-    currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
-    else 
-    currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
-    FastLED.clear();
-    DemTimer = millis() + DEMOTIMELIMIT;
-    loadingFlag = true;}
 }

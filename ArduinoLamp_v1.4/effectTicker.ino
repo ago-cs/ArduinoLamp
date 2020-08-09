@@ -1,6 +1,6 @@
 uint32_t effTimer;
 byte ind;
-void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 5 || currentMode > 13) ? modes[currentMode].Speed : 50) ) {effTimer = millis(); switch (currentMode) {
+void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 5 || currentMode > 16) ? modes[currentMode].Speed : 50) ) {effTimer = millis(); switch (currentMode) {
 //|номер   |название функции эффекта     |тоже надо|
    case 0 : sparklesRoutine();             break;
    case 1 : fireRoutine();                 break;
@@ -80,4 +80,15 @@ void changePower() {    // плавное включение/выключени�
     delay(2);
     FastLED.show();
   }
-} 
+}
+
+ void demo(){
+  if (isDemo && ONflag && millis() >= DemTimer){
+    if(RANDOM_DEMO)
+    currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
+    else 
+    currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
+    FastLED.clear();
+    DemTimer = millis() + DEMOTIMELIMIT;
+    loadingFlag = true;}
+}
