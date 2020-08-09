@@ -1665,11 +1665,11 @@ void BBallsRoutine() {
       bballsVImpact[i] = bballsVImpact0;                // And "pop" up at vImpact0
       bballsCOR[i] = 0.90 - float(i) / pow(bballsNUM, 2); // это, видимо, прыгучесть. для каждого мячика уникальная изначально
       bballsShift[i] = false;
-      hue2 = (modes[currentMode].Scale > 127U) ? 255U : 0U;                                           // цветные или белые мячики
+      hue2 = (modes[currentMode].Speed > 127U) ? 255U : 0U;                                           // цветные или белые мячики
       hue = (modes[currentMode].Speed == 128U) ? 255U : 254U - modes[currentMode].Speed % 128U * 2U;  // скорость угасания хвостов 0 = моментально
     }
   }
-
+  
   float bballsHi;
   float bballsTCycle;
   deltaHue++; // постепенное изменение оттенка мячиков (закомментировать строчку, если не нужно)
@@ -1708,6 +1708,7 @@ void BBallsRoutine() {
     leds[XY(bballsX[i], bballsPos[i])] = CHSV(bballsCOLOR[i] + deltaHue, hue2, 255U);
   }
 }
+
 /*// ------------------------------ ЭФФЕКТ ПРЫГУНЫ ----------------------
 // стырено откуда-то by @obliterator
 // https://github.com/DmytroKorniienko/FireLamp_JeeUI/blob/templ/src/effects.cpp
