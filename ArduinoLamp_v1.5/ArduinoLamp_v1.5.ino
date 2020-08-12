@@ -2,7 +2,7 @@
   Скетч к проекту "Многофункциональный RGB светильник"
   Страница проекта (схемы, описания): https://alexgyver.ru/GyverLamp/
   Нравится, как написан код? Поддержи автора! https://alexgyver.ru/support_alex/
-  Автор: AlexGyver, AlexGyver Technologies, 2019(Портировал на Ардуино Norvol(+ эффекты,демо stepko365)
+  Автор: AlexGyver, AlexGyver Technologies, 2019(Портировал на Ардуино Norovl(+ эффекты,демо stepko365)
   https://AlexGyver.ru/
 */
 // ---------------- БИБЛИОТЕКИ -----------------
