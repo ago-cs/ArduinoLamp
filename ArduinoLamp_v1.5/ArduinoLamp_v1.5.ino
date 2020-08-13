@@ -7,10 +7,9 @@
 */
 // ---------------- БИБЛИОТЕКИ -----------------
 #include <EEPROM.h>
+#include <GyverButtonOld.h>
 #include <FastLED.h>
-#include <GyverButton.h>
 //-----------------            -----------------
-#define FASTLED_USE_PROGMEM 1 // просим библиотеку FASTLED экономить память контроллера на свои палитры
 //#include "bitmap2.h"
 #include "Constants.h"
 // ----------------- ПЕРЕМЕННЫЕ ------------------
