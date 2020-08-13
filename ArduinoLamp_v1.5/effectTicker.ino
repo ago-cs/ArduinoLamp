@@ -39,6 +39,7 @@ void effectsTick() {
         case 31: noiseWave(true);               break;
         case 32: lightersRoutine();             break;
         case 33: pulseRoutine(1);               break;
+        case 34: ringsRoutine();                break;
 
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
