@@ -41,7 +41,7 @@ void effectsTick() {
         case 33: pulseRoutine(1);               break;
         case 34: ringsRoutine();                break;
         case 35: starRoutine();                 break;
-        case 36: spiroRoutine();                break;
+        case 36: MunchRoutine();                break;
 
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба

@@ -255,7 +255,7 @@ void colorRoutine() {
 }
 
 // ------------------------------ снегопад 2.0 --------------------------------
-void snowRoutine() {
+/*void snowRoutine() {
   // сдвигаем всё вниз
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT - 1; y++) {
@@ -271,10 +271,10 @@ void snowRoutine() {
     else
       drawPixelXY(x, HEIGHT - 1, 0x000000);
   }
-}
-
+  }
+*/
 // ------------------------------ МАТРИЦА ------------------------------
-void matrixRoutine() {
+/*void matrixRoutine() {
   for (byte x = 0; x < WIDTH; x++) {
     // заполняем случайно верхнюю строку
     uint32_t thisColor = getPixColorXY(x, HEIGHT - 1);
@@ -292,10 +292,10 @@ void matrixRoutine() {
       drawPixelXY(x, y, getPixColorXY(x, y + 1));
     }
   }
-}
-
+  }
+*/
 // ------------------------------ БЕЛАЯ ЛАМПА ------------------------------
-void whiteLamp() {
+/*void whiteLamp() {
   for (byte y = 0; y < (HEIGHT / 2); y++) {
     CHSV color = CHSV(100, 1, constrain(modes[currentMode].Brightness - (long)modes[currentMode].Speed * modes[currentMode].Brightness / 255 * y / 2, 1, 255));
     for (byte x = 0; x < WIDTH; x++) {
@@ -303,7 +303,7 @@ void whiteLamp() {
       drawPixelXY(x, 7 - y, color);
     }
   }
-}
+  }*/
 //--------------------------Шторм,Метель-------------------------
 #define e_sns_DENSE (32U) // плотность снега - меньше = плотнее
 void stormRoutine2(bool isColored)
@@ -607,7 +607,6 @@ void ballRoutine()
 //-------------------Светлячки со шлейфом----------------------------
 #define BALLS_AMOUNT          (3U)                          // количество "шариков"
 #define CLEAR_PATH            (1U)                          // очищать путь
-#define BALL_TRACK            (1U)                          // (0 / 1) - вкл/выкл следы шариков
 #define TRACK_STEP            (130U)                         // длина хвоста шарика (чем больше цифра, тем хвост короче)
 int16_t coord[BALLS_AMOUNT][2U];
 int8_t vector[BALLS_AMOUNT][2U];
@@ -634,14 +633,8 @@ void ballsRoutine()
     }
   }
 
-  if (!BALL_TRACK)                                          // режим без следов шариков
-  {
-    FastLED.clear();
-  }
-  else                                                      // режим со следами
-  {
-    fader(TRACK_STEP);
-  }
+  fader(TRACK_STEP);
+
 
   // движение шариков
   for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
@@ -675,7 +668,7 @@ void ballsRoutine()
 #define COOLINGNEW 32
 #define SPARKINGNEW 80
 /*extern const TProgmemRGBPalette16 WaterfallColors4in1_p FL_PROGMEM = {CRGB::Black, CRGB::DarkSlateGray, CRGB::DimGray, CRGB::LightSlateGray, CRGB::DimGray, CRGB::DarkSlateGray, CRGB::Silver, CRGB::Lavender, CRGB::Silver, CRGB::Azure, CRGB::LightGrey, CRGB::GhostWhite, CRGB::Silver, CRGB::White, CRGB::RoyalBlue};
-void fire2012WithPalette4in1() {
+  void fire2012WithPalette4in1() {
   uint8_t rCOOLINGNEW = constrain((uint16_t)(modes[currentMode].Scale % 16) * 32 / HEIGHT + 16, 1, 255) ;
   // Array of temperature readings at each simulation cell
   //static byte heat[WIDTH][HEIGHT]; будет noise3d[0][WIDTH][HEIGHT]
@@ -720,7 +713,7 @@ void fire2012WithPalette4in1() {
       }
     }
   }
-}*/
+  }*/
 void fire2012WithPalette() {
   //    bool fire_water = modes[currentMode].Scale <= 50;
   //    uint8_t COOLINGNEW = fire_water ? modes[currentMode].Scale * 2  + 20 : (100 - modes[currentMode].Scale ) *  2 + 20 ;
@@ -973,8 +966,8 @@ byte spirotheta2 = 0;
 const uint8_t spiroradiusx = WIDTH / 4 - 1;
 const uint8_t spiroradiusy = HEIGHT / 4 - 1;
 
-const uint8_t spirocenterX = WIDTH / 2 - 1;
-const uint8_t spirocenterY = HEIGHT / 2 - 1;
+const uint8_t spirocenterX = WIDTH / 2;
+const uint8_t spirocenterY = HEIGHT / 2;
 
 const uint8_t spirominx = spirocenterX - spiroradiusx;
 const uint8_t spiromaxx = spirocenterX + spiroradiusx + 1;
@@ -1000,6 +993,16 @@ uint8_t mapcos8(uint8_t theta, uint8_t lowest = 0, uint8_t highest = 255) {
   uint8_t rangewidth = highest - lowest;
   uint8_t Scaledbeat = scale8(beatcos, rangewidth);
   uint8_t result = lowest + Scaledbeat;
+  return result;
+}
+
+uint8_t beatcos8(accum88 beats_per_minute, uint8_t lowest = 0, uint8_t highest = 255, uint32_t timebase = 0, uint8_t phase_offset = 0)
+{
+  uint8_t beat = beat8(beats_per_minute, timebase);
+  uint8_t beatcos = cos8(beat + phase_offset);
+  uint8_t rangewidth = highest - lowest;
+  uint8_t scaledbeat = scale8(beatcos, rangewidth);
+  uint8_t result = lowest + scaledbeat;
   return result;
 }
 
@@ -1069,6 +1072,130 @@ void spiroRoutine() {
   }
 }
 
+
+/*      void driftRoutine() {
+         if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette();
+  }
+      uint8_t dim = beatsin8(2, 230, 250);
+      dimAll(dim);
+
+      for (int i = 2; i <= WIDTH / 2; i++)
+      {
+        CRGB color = (CRGB)ColorFromPalette(*curPalette,(i - 2) * (240 / (WIDTH / 2)));
+
+        uint8_t x = beatcos8((spirocenterX + 1 - i) * 2, spirocenterX - i, spirocenterX + i);
+        uint8_t y = beatsin8((spirocenterY + 1 - i) * 2, spirocenterY - i, spirocenterY + i);
+
+        drawPixelXY(x, y, color);
+      }
+    }
+*/
+void drift2Routine() {
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette();
+  }
+  uint8_t dim = beatsin8(2, 170, 250);
+  dimAll(dim);
+
+  for (uint8_t i = 0; i < WIDTH; i++)
+  {
+    CRGB color;
+
+    uint8_t x = 0;
+    uint8_t y = 0;
+
+    if (i < spirocenterX) {
+      x = beatcos8((i + 1) * 20, i, WIDTH - i);
+      y = beatsin8((i + 1) * 20, i, HEIGHT - i);
+      color = (CRGB)ColorFromPalette(*curPalette, i * 14);
+    }
+    else
+    {
+      x = beatsin8((WIDTH - i) * 20, WIDTH - i, i + 1);
+      y = beatcos8((HEIGHT - i) * 20, HEIGHT - i, i + 1);
+      color = (CRGB)ColorFromPalette(*curPalette, (31 - i) * 14);
+    }
+
+    leds[XY(x, y)] = color;
+  }
+}
+
+void infinityRoutine() {
+  //dimAll(255U - modes[currentMode].Speed / 10);
+  FastLED.clear();
+
+  // the horizontal position of the head of the infinity sign
+  // oscillates from 0 to the maximum horizontal and back
+  int x = beatsin8(15, 1, WIDTH - 1);
+
+  // the vertical position of the head oscillates
+  int y = (HEIGHT - 1) - beatsin8(30, HEIGHT / 4, ((HEIGHT / 4) * 3) - 1);
+
+  // the hue oscillates from 0 to 255, overflowing back to 0
+  hue++;
+
+  CRGB color = (CRGB)ColorFromPalette(*curPalette, hue);
+
+  leds[XY(x, y)] = color;
+  leds[XY(x - 1, y)] = color;
+}
+
+
+byte theta = 0;
+void radarRoutine() {
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette();
+  }
+  dimAll(254);
+
+  for (int offset = 0; offset < spirocenterX; offset++) {
+    byte hue = 255 - (offset * (256 / spirocenterX) + hue);
+    CRGB color = ColorFromPalette(*curPalette, hue);
+    uint8_t x = mapcos8(theta, offset, (WIDTH - 1) - offset);
+    uint8_t y = mapsin8(theta, offset, (HEIGHT - 1) - offset);
+    leds[XY(x, y)] = color;
+
+    EVERY_N_MILLIS(25) {
+      theta += 2;
+      hue += 1;
+    }
+  }
+}
+
+
+byte count = 0;
+byte dir = 1;
+byte flip = 0;
+byte generation = 0;
+void MunchRoutine() {
+  for (byte x = 0; x < WIDTH; x++) {
+    for (byte y = 0; y < HEIGHT; y++) {
+      leds[XY(x, y)] = (x ^ y ^ flip) < count ? ColorFromPalette(*curPalette, ((x ^ y) << 3) + generation) : CRGB::Black;
+    }
+  }
+
+  count += dir;
+
+  if (count <= 0 || count >= WIDTH) {
+    dir = -dir;
+  }
+
+  if (count <= 0) {
+    if (flip == 0)
+      flip = 31;
+    else
+      flip = 0;
+  }
+
+  generation++;
+}
 // ------------------------------ ЭФФЕКТ КОЛЬЦА / КОДОВЫЙ ЗАМОК ----------------------
 // (c) SottNick
 // из-за повторного использоваия переменных от других эффектов теперь в этом коде невозможно что-то понять.
@@ -1084,90 +1211,90 @@ void spiroRoutine() {
 //uint8_t step; // оставшееся количество шагов, на которое нужно провернуть активное кольцо - случайное от WIDTH/5 до WIDTH-3
 //uint8_t hue, hue2; // количество пикселей в нижнем (hue) и верхнем (hue2) кольцах
 
-void ringsRoutine(){
-    uint8_t h, x, y;
-    if (loadingFlag)
-    {
-      loadingFlag = false;
-      setCurrentPalette();
+void ringsRoutine() {
+  uint8_t h, x, y;
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette();
 
-      //deltaHue2 = (modes[currentMode].Scale - 1U) / 99.0 * (HEIGHT / 2 - 1U) + 1U; // толщина кольца в пикселях. если на весь бегунок масштаба (от 1 до HEIGHT / 2 + 1)
-      deltaHue2 = (modes[currentMode].Scale - 1U) % 11U + 1U; // толщина кольца от 1 до 11 для каждой из палитр
-      deltaHue = HEIGHT / deltaHue2 + ((HEIGHT % deltaHue2 == 0U) ? 0U : 1U); // количество колец
-      hue2 = deltaHue2 - (deltaHue2 * deltaHue - HEIGHT) / 2U; // толщина верхнего кольца. может быть меньше нижнего
-      hue = HEIGHT - hue2 - (deltaHue - 2U) * deltaHue2; // толщина нижнего кольца = всё оставшееся
-      for (uint8_t i = 0; i < deltaHue; i++)
-      {
-        noise3d[0][0][i] = random8(257U - WIDTH / 2U); // начальный оттенок кольца из палитры 0-255 за минусом длины кольца, делённой пополам
-        shiftHue[i] = random8();
-        shiftValue[i] = 0U; //random8(WIDTH); само прокрутится постепенно
-        step = 0U;
-        //do { // песец конструкцию придумал бредовую
-        //  step = WIDTH - 3U - random8((WIDTH - 3U) * 2U); само присвоится при первом цикле
-        //} while (step < WIDTH / 5U || step > 255U - WIDTH / 5U);
-        deltaValue = random8(deltaHue);
-      }
-      
-    }
+    //deltaHue2 = (modes[currentMode].Scale - 1U) / 99.0 * (HEIGHT / 2 - 1U) + 1U; // толщина кольца в пикселях. если на весь бегунок масштаба (от 1 до HEIGHT / 2 + 1)
+    deltaHue2 = (modes[currentMode].Scale - 1U) % 11U + 1U; // толщина кольца от 1 до 11 для каждой из палитр
+    deltaHue = HEIGHT / deltaHue2 + ((HEIGHT % deltaHue2 == 0U) ? 0U : 1U); // количество колец
+    hue2 = deltaHue2 - (deltaHue2 * deltaHue - HEIGHT) / 2U; // толщина верхнего кольца. может быть меньше нижнего
+    hue = HEIGHT - hue2 - (deltaHue - 2U) * deltaHue2; // толщина нижнего кольца = всё оставшееся
     for (uint8_t i = 0; i < deltaHue; i++)
     {
-      if (i != deltaValue) // если это не активное кольцо
-        {
-          h = shiftHue[i] & 0x0F; // сдвигаем оттенок внутри кольца
-          if (h > 8U)
-            //noise3d[0][0][i] += (uint8_t)(7U - h); // с такой скоростью сдвиг оттенка от вращения кольца не отличается
-            noise3d[0][0][i]--;
-          else
-            //noise3d[0][0][i] += h;
-            noise3d[0][0][i]++;
-        }
-      else
-        {
-          if (step == 0) // если сдвиг активного кольца завершён, выбираем следующее
-            {
-              deltaValue = random8(deltaHue);
-              do {
-                step = WIDTH - 3U - random8((WIDTH - 3U) * 2U); // проворот кольца от хз до хз 
-              } while (step < WIDTH / 5U || step > 255U - WIDTH / 5U);
-            }
-          else
-            {
-              if (step > 127U)
-                {
-                  step++;
-                  shiftValue[i] = (shiftValue[i] + 1U) % WIDTH;
-                }
-              else
-                {
-                  step--;
-                  shiftValue[i] = (shiftValue[i] - 1U + WIDTH) % WIDTH;
-                }
-            }
-        }
-        // отрисовываем кольца
-        h = (shiftHue[i] >> 4) & 0x0F; // берём шаг для градиента вутри кольца
-        if (h > 8U)
-          h = 7U - h;
-        for (uint8_t j = 0U; j < ((i == 0U) ? hue : ((i == deltaHue - 1U) ? hue2 : deltaHue2)); j++) // от 0 до (толщина кольца - 1)
-        {
-          y = i * deltaHue2 + j - ((i == 0U) ? 0U : deltaHue2 - hue);
-          // mod для чётных скоростей by @kostyamat - получается какая-то другая фигня. не стоит того
-          //for (uint8_t k = 0; k < WIDTH / ((modes[currentMode].Speed & 0x01) ? 2U : 4U); k++) // полукольцо для нечётных скоростей и четверть кольца для чётных
-          for (uint8_t k = 0; k < WIDTH / 2U; k++) // полукольцо
-            {
-              x = (shiftValue[i] + k) % WIDTH; // первая половина кольца
-              drawPixelXY(x,y,ColorFromPalette(*curPalette, noise3d[0][0][i] + k * h));
-              x = (WIDTH - 1 + shiftValue[i] - k) % WIDTH; // вторая половина кольца (зеркальная первой)
-
-              drawPixelXY(x,y,ColorFromPalette(*curPalette, noise3d[0][0][i] + k * h));
-            }
-          if (WIDTH & 0x01) //(WIDTH % 2U > 0U) // если число пикселей по ширине матрицы нечётное, тогда не забываем и про среднее значение
-          {
-            x = (shiftValue[i] + WIDTH / 2U) % WIDTH;
-            drawPixelXY(x,y,ColorFromPalette(*curPalette, noise3d[0][0][i] + WIDTH / 2U * h));
-          }
-        }
+      noise3d[0][0][i] = random8(257U - WIDTH / 2U); // начальный оттенок кольца из палитры 0-255 за минусом длины кольца, делённой пополам
+      shiftHue[i] = random8();
+      shiftValue[i] = 0U; //random8(WIDTH); само прокрутится постепенно
+      step = 0U;
+      //do { // песец конструкцию придумал бредовую
+      //  step = WIDTH - 3U - random8((WIDTH - 3U) * 2U); само присвоится при первом цикле
+      //} while (step < WIDTH / 5U || step > 255U - WIDTH / 5U);
+      deltaValue = random8(deltaHue);
     }
+
+  }
+  for (uint8_t i = 0; i < deltaHue; i++)
+  {
+    if (i != deltaValue) // если это не активное кольцо
+    {
+      h = shiftHue[i] & 0x0F; // сдвигаем оттенок внутри кольца
+      if (h > 8U)
+        //noise3d[0][0][i] += (uint8_t)(7U - h); // с такой скоростью сдвиг оттенка от вращения кольца не отличается
+        noise3d[0][0][i]--;
+      else
+        //noise3d[0][0][i] += h;
+        noise3d[0][0][i]++;
+    }
+    else
+    {
+      if (step == 0) // если сдвиг активного кольца завершён, выбираем следующее
+      {
+        deltaValue = random8(deltaHue);
+        do {
+          step = WIDTH - 3U - random8((WIDTH - 3U) * 2U); // проворот кольца от хз до хз
+        } while (step < WIDTH / 5U || step > 255U - WIDTH / 5U);
+      }
+      else
+      {
+        if (step > 127U)
+        {
+          step++;
+          shiftValue[i] = (shiftValue[i] + 1U) % WIDTH;
+        }
+        else
+        {
+          step--;
+          shiftValue[i] = (shiftValue[i] - 1U + WIDTH) % WIDTH;
+        }
+      }
+    }
+    // отрисовываем кольца
+    h = (shiftHue[i] >> 4) & 0x0F; // берём шаг для градиента вутри кольца
+    if (h > 8U)
+      h = 7U - h;
+    for (uint8_t j = 0U; j < ((i == 0U) ? hue : ((i == deltaHue - 1U) ? hue2 : deltaHue2)); j++) // от 0 до (толщина кольца - 1)
+    {
+      y = i * deltaHue2 + j - ((i == 0U) ? 0U : deltaHue2 - hue);
+      // mod для чётных скоростей by @kostyamat - получается какая-то другая фигня. не стоит того
+      //for (uint8_t k = 0; k < WIDTH / ((modes[currentMode].Speed & 0x01) ? 2U : 4U); k++) // полукольцо для нечётных скоростей и четверть кольца для чётных
+      for (uint8_t k = 0; k < WIDTH / 2U; k++) // полукольцо
+      {
+        x = (shiftValue[i] + k) % WIDTH; // первая половина кольца
+        drawPixelXY(x, y, ColorFromPalette(*curPalette, noise3d[0][0][i] + k * h));
+        x = (WIDTH - 1 + shiftValue[i] - k) % WIDTH; // вторая половина кольца (зеркальная первой)
+
+        drawPixelXY(x, y, ColorFromPalette(*curPalette, noise3d[0][0][i] + k * h));
+      }
+      if (WIDTH & 0x01) //(WIDTH % 2U > 0U) // если число пикселей по ширине матрицы нечётное, тогда не забываем и про среднее значение
+      {
+        x = (shiftValue[i] + WIDTH / 2U) % WIDTH;
+        drawPixelXY(x, y, ColorFromPalette(*curPalette, noise3d[0][0][i] + WIDTH / 2U * h));
+      }
+    }
+  }
 }
 
 
@@ -1347,9 +1474,7 @@ void PrismataRoutine() {
 }
 // ------------- светлячки --------------
 #define BALLS_AMOUNT2          (10U)                          // количество "cветлячков"
-#define CLEAR_PATH2            (1U)                          // очищать путь
-#define BALL_TRACK2            (0U)                          // (0 / 1) - вкл/выкл следы шариков
-#define TRACK_STEP2            (70U)                         // длина хвоста шарика (чем больше цифра, тем хвост короче)
+#define CLEAR_PATH2            (1U)                          // очищать путь       
 int16_t coord2[BALLS_AMOUNT2][2U];
 int8_t vector2[BALLS_AMOUNT2][2U];
 CRGB ballColors2[BALLS_AMOUNT2];
@@ -1375,14 +1500,8 @@ void lightersRoutine()
     }
   }
 
-  if (!BALL_TRACK2)                                          // режим без следов шариков
-  {
-    FastLED.clear();
-  }
-  else                                                      // режим со следами
-  {
-    fader(TRACK_STEP2);
-  }
+
+  FastLED.clear();
 
   // движение шариков
   for (uint8_t j = 0U; j < BALLS_AMOUNT2; j++)
