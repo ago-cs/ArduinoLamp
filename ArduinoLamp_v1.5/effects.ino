@@ -808,15 +808,15 @@ void noiseWave(bool isColored) {
 }
 
 //----------------Gifка----------------------
-/*byte frameNum;
+byte frameNum;
   void animation1() {
   frameNum++;
-  if (frameNum >= 6) frameNum = 0;
+  if (frameNum >= (framesArray)) frameNum = 0;
   for (byte i = 0; i < 8; i++)
     for (byte j = 0; j < 8; j++)
       drawPixelXY(i, j, gammaCorrection(expandColor(pgm_read_word(&framesArray[frameNum][HEIGHT - j - 1][i]))));
   }
-*/
+
 
 
 // -------------- эффект пульс ------------
@@ -1073,7 +1073,7 @@ void spiroRoutine() {
 }
 
 
-/*      void driftRoutine() {
+      void driftRoutine() {
          if (loadingFlag)
   {
     loadingFlag = false;
@@ -1092,7 +1092,7 @@ void spiroRoutine() {
         drawPixelXY(x, y, color);
       }
     }
-*/
+
 void drift2Routine() {
   if (loadingFlag)
   {
@@ -1126,6 +1126,11 @@ void drift2Routine() {
 }
 
 void infinityRoutine() {
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette();
+  }
   //dimAll(255U - modes[currentMode].Speed / 10);
   FastLED.clear();
 
@@ -1175,6 +1180,11 @@ byte dir = 1;
 byte flip = 0;
 byte generation = 0;
 void MunchRoutine() {
+   if (loadingFlag)
+  {
+    loadingFlag = false;
+      setCurrentPalette();
+  }
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT; y++) {
       leds[XY(x, y)] = (x ^ y ^ flip) < count ? ColorFromPalette(*curPalette, ((x ^ y) << 3) + generation) : CRGB::Black;
@@ -1189,7 +1199,7 @@ void MunchRoutine() {
 
   if (count <= 0) {
     if (flip == 0)
-      flip = 31;
+      flip = 7;
     else
       flip = 0;
   }
