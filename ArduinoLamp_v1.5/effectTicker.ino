@@ -36,9 +36,9 @@ void effectsTick() {
         case 28: ballsRoutine();                break;
         case 29: fire2012WithPalette();         break;
         case 30: lightersRoutine();             break;
-        case 31: pulseRoutine(1);               break;
-        case 32: ringsRoutine();                break;
-        case 33: starRoutine();                 break;
+        case 31: lightBallsRoutine();           break;
+        case 32: pulseRoutine(1);               break;
+        case 33: ringsRoutine();                break;
         case 34: MunchRoutine();                break;
 
       }

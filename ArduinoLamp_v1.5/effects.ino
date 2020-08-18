@@ -44,7 +44,7 @@ void dimAll(uint8_t value) {
     leds[i].nscale8(value); //fadeToBlackBy
   }
 }
-void drawPixelXYF(float x, float y, CRGB color)
+void drawPixelXYF(float x, float y, const CRGB &color)
 {
   // extract the fractional parts and derive their inverses
   uint8_t xx = (x - (int)x) * 255, yy = (y - (int)y) * 255, ix = 255 - xx, iy = 255 - yy;
@@ -567,7 +567,7 @@ void WaveRoutine() {
 
 //-------------------------Блуждающий кубик-----------------------
 #define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке
-int16_t coordB[2U];
+/*int16_t coordB[2U];
 int8_t vectorB[2U];
 CRGB ballColor;
 //int8_t deltaValue; //ballSize;
@@ -637,7 +637,81 @@ void ballRoutine()
     for (uint8_t j = 0U; j < deltaValue; j++)
       leds[XY(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = ballColor;
 }
+*/
+// ------------- эффект "блуждающий кубик" -------------
 
+  int8_t ballSize;
+  CHSV ballColor;
+  float vectorB[2U];
+  float coordB[2U];
+
+void ballRoutine()
+{
+if (loadingFlag) {
+  ballSize = map(modes[currentMode].Scale, modes[currentMode].Scale <= 127U ? 0U : 128U, modes[currentMode].Scale <= 127U ? 127U : 255U, 2U, max((uint8_t)min(WIDTH,HEIGHT) / 3U, 2U));
+    ballSize = map(modes[currentMode].Scale, modes[currentMode].Scale <= 127U ? 0U : 128U, modes[currentMode].Scale <= 127U ? 127U : 255U, 2U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 2));
+  for (uint8_t i = 0U; i < 2U; i++)
+  {
+    coordB[i] = i? float(WIDTH - ballSize) / 2 : float(HEIGHT - ballSize) / 2;
+    vectorB[i] = (float)random(80, 240) / 10 - 12.0f;
+    ballColor = CHSV(random8(1, 255), 220, random8(100, 255));
+    loadingFlag = false;
+  }
+}
+
+// каждые 5 секунд коррекция направления
+  EVERY_N_SECONDS(5){
+    for (uint8_t i = 0U; i < 2U; i++)
+    {
+      if(fabs(vectorB[i]) < 12)
+        vectorB[i] += (float)random8(0U, 80U) /10.0f - 4.0f;
+      else if (vectorB[i] > 12)
+        vectorB[i] -= (float)random8(10, 60) / 10.0f;
+      else
+        vectorB[i] += (float)random8(10, 60) /10.0f;
+      if(!(uint8_t)vectorB[i])
+        vectorB[i] += 0.5f;
+
+     // ballColor = CHSV(random8(1, 255), 220, random8(100, 255));
+    }
+  }
+
+  for (uint8_t i = 0U; i < 2U; i++)
+  {
+    coordB[i] += vectorB[i] * ((0.1f * (float)modes[currentMode].Speed) /255.0f);
+    if ((int8_t)coordB[i] < 0)
+    {
+      coordB[i] = 0;
+      vectorB[i] = -vectorB[i];
+      if (RANDOM_COLOR) ballColor = CHSV(random8(1, 255), 220, random8(100, 255));
+    }
+  }
+  if ((int8_t)coordB[0U] > (int16_t)(WIDTH - ballSize))
+  {
+    coordB[0U] = (WIDTH - ballSize);
+    vectorB[0U] = -vectorB[0U];
+    if (RANDOM_COLOR) ballColor = CHSV(random8(1, 255), 220, random8(100, 255));
+  }
+  if ((int8_t)coordB[1U] > (int16_t)(HEIGHT - ballSize))
+  {
+    coordB[1U] = (HEIGHT - ballSize);
+    vectorB[1U] = -vectorB[1U];
+    if (RANDOM_COLOR) ballColor = CHSV(random8(1, 255), 220, random8(100, 255));
+  }
+
+  if (modes[currentMode].Scale <= 127) { // при масштабе до 127 выводим кубик без шлейфа
+    memset8( leds, 0, NUM_LEDS * 3);
+  } else {
+    fadeToBlackBy(leds, NUM_LEDS, 255 - (uint8_t)(10 * ((float)modes[currentMode].Speed) /255) + 30); // выводим кубик со шлейфом, длинна которого зависит от скорости.
+  }
+  for (float i = 0.0f; i < (float)ballSize; i+= 0.25f)
+  {
+    for (float j = 0.0f; j < (float)ballSize; j+=0.25f)
+    {
+      drawPixelXYF(coordB[0U] + i, coordB[1U] + j, ballColor);
+    }
+  }
+}
 //-------------------Светлячки со шлейфом----------------------------
 #define BALLS_AMOUNT          (3U)                          // количество "шариков"
 #define CLEAR_PATH            (1U)                          // очищать путь
@@ -784,37 +858,33 @@ void fire2012WithPalette() {
     }
   }
 }
-//-----------------------Недо огонь---------------------------------------
-//stepko
-#define FOR_i(from, to) for(int i = (from); i < (to); i++)
-#define FOR_j(from, to) for(int j = (from); j < (to); j++)
-unsigned int  counter;
-int STEP = modes[currentMode].Scale; //нужно виставить номер эффекта с пометкой false или любое число если не хотите Белого огня
-void noiseWave(bool isColored) {
-if (loadingFlag)
-  {
-    loadingFlag = false;
-    setCurrentPalette();
-  }
-  FastLED.clear();
-  
-  FOR_i(0, WIDTH) {
-    byte thisVal = sin8(STEP*counter*i);
-    byte thisMax = map(thisVal, 0, 255, 0, HEIGHT);
-    if (isColored) {
-        FOR_j(0, thisMax) {
-          CRGB color = (CRGB)ColorFromPalette(*curPalette, map(j, 0, thisMax, 250, 0), 255, LINEARBLEND);
-          drawPixelXY(i, j, color);}}
-    else {
-      STEP = modes[currentMode].Scale;
-      FOR_j(0, thisMax) {
-        drawPixelXY(i, j, ColorFromPalette(WaterfallColors_p, map(j, 0, thisMax, 250, 0), 255, LINEARBLEND));
-      }
-    }
-  }
-  counter += 1;
-}
+// ------------- пейнтбол -------------
+#define BORDERTHICKNESS (1U) // глубина бордюра для размытия яркой частицы: 0U - без границы (резкие края); 1U - 1 пиксель (среднее размытие) ; 2U - 2 пикселя (глубокое размытие)
+const uint8_t paintWidth = WIDTH - BORDERTHICKNESS * 2;
+const uint8_t paintHeight = HEIGHT - BORDERTHICKNESS * 2;
 
+void lightBallsRoutine()
+{
+  // Apply some blurring to whatever's already on the matrix
+  // Note that we never actually clear the matrix, we just constantly
+  // blur it repeatedly. Since the blurring is 'lossy', there's
+  // an automatic trend toward black -- by design.
+  uint8_t blurAmount = dim8_raw(beatsin8(3, 64, 100));
+  blur2d(leds, WIDTH, HEIGHT, blurAmount);
+
+  // Use two out-of-sync sine waves
+  uint16_t i = beatsin16( 79, 0, 255); //91
+  uint16_t j = beatsin16( 67, 0, 255); //109
+  uint16_t k = beatsin16( 53, 0, 255); //73
+  uint16_t m = beatsin16( 97, 0, 255); //123
+
+  // The color of each point shifts over time, each at a different speed.
+  uint32_t ms = millis() / (modes[currentMode].Scale / 4 + 1);
+  leds[XY( highByte(i * paintWidth) + BORDERTHICKNESS, highByte(j * paintHeight) + BORDERTHICKNESS)] += CHSV( ms / 29, 200U, 255U);
+  leds[XY( highByte(j * paintWidth) + BORDERTHICKNESS, highByte(k * paintHeight) + BORDERTHICKNESS)] += CHSV( ms / 41, 200U, 255U);
+  leds[XY( highByte(k * paintWidth) + BORDERTHICKNESS, highByte(m * paintHeight) + BORDERTHICKNESS)] += CHSV( ms / 37, 200U, 255U);
+  leds[XY( highByte(m * paintWidth) + BORDERTHICKNESS, highByte(i * paintHeight) + BORDERTHICKNESS)] += CHSV( ms / 53, 200U, 255U);
+}
 //----------------Gifка----------------------
 /*byte frameNum;
   void animation1() {
@@ -1351,6 +1421,7 @@ void ringsRoutine() {
 #define STAR_BLENDER 128U             // хз что это 
 #define CENTER_DRIFT_SPEED 6U         // скорость перемещения плавающего центра возникновения звёзд
 #define bballsMaxNUM            (WIDTH * 2)
+unsigned int  counter;
 //, ringdelay;//, bringdelay, sumthum;
 //int16_t shifty = 6;//, pattern = 0, poffset;
 int16_t radius2;//, fpeed[WIDTH * 3], fcount[WIDTH * 3], fcountr[WIDTH * 3];//, xxx, yyy, dot = 3, rr, gg, bb, adjunct = 3;
