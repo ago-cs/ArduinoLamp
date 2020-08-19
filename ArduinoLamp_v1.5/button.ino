@@ -21,7 +21,7 @@ void buttonTick() {
       FastLED.setBrightness(modes[currentMode].Brightness);
       loadingFlag = true;
       //settChanged = true;
-      FastLED.clear();
+       memset8( leds, 0, NUM_LEDS * 3) ;
       delay(1);
     }
     if (touch.isTriple()) {
@@ -29,7 +29,7 @@ void buttonTick() {
       FastLED.setBrightness(modes[currentMode].Brightness);
       loadingFlag = true;
       //settChanged = true;
-      FastLED.clear();
+       memset8( leds, 0, NUM_LEDS * 3) ;
       delay(1);
     }
     if (touch.hasClicks())

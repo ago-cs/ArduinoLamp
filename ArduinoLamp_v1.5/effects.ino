@@ -149,7 +149,7 @@ const unsigned char hueMask[8][16] PROGMEM = {
 void fireRoutine() {
   if (loadingFlag) {
     loadingFlag = false;
-    //FastLED.clear();
+    // memset8( leds, 0, NUM_LEDS * 3) ;
     generateLine();
   }
   if (pcnt >= 100) {
@@ -259,7 +259,7 @@ void rainbowDiagonalRoutine()
   if (loadingFlag)
   {
     loadingFlag = false;
-    FastLED.clear();
+     memset8( leds, 0, NUM_LEDS * 3) ;
   }
 
   hue += 8;
@@ -567,7 +567,7 @@ void WaveRoutine() {
 
 //-------------------------Блуждающий кубик-----------------------
 #define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке
-/*int16_t coordB[2U];
+int16_t coordB[2U];
 int8_t vectorB[2U];
 CRGB ballColor;
 //int8_t deltaValue; //ballSize;
@@ -577,7 +577,7 @@ void ballRoutine()
   if (loadingFlag)
   {
     loadingFlag = false;
-    //FastLED.clear();
+    // memset8( leds, 0, NUM_LEDS * 3) ;
 
     for (uint8_t i = 0U; i < 2U; i++)
     {
@@ -586,15 +586,15 @@ void ballRoutine()
     }
     deltaValue = map(modes[currentMode].Scale * 2.55, 0U, 255U, 2U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 2));
     ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-    //    _pulse_color = CHSV(random(0, 9) * 28, 255U, 255U);
+        _pulse_color = CHSV(random(0, 9) * 28, 255U, 255U);
   }
 
-  //  if (!(modes[currentMode].Scale & 0x01))
-  //  {
-  //    hue += (modes[currentMode].Scale - 1U) % 11U * 8U + 1U;
+   // if (!(modes[currentMode].Scale & 0x01))
+   // {
+     // hue += (modes[currentMode].Scale - 1U) % 11U * 8U + 1U;
 
-  //    ballColor = CHSV(hue, 255U, 255U);
-  //  }
+      //ballColor = CHSV(hue, 255U, 255U);
+    //}
 
   if ((modes[currentMode].Scale & 0x01))
     for (uint8_t i = 0U; i < deltaValue; i++)
@@ -627,19 +627,18 @@ void ballRoutine()
     //vectorB[1] += random(0, 6) - 3;
   }
 
-  //  if (modes[currentMode].Scale & 0x01)
-    //  dimAll(135U);
-     // dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 24U);
-    //else
-  FastLED.clear();
+    if (modes[currentMode].Scale & 0x01){
+      //dimAll(135U);
+      dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 24U);}
+    else
+   memset8( leds, 0, NUM_LEDS * 3) ;
 
   for (uint8_t i = 0U; i < deltaValue; i++)
     for (uint8_t j = 0U; j < deltaValue; j++)
       leds[XY(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = ballColor;
 }
-*/
 // ------------- эффект "блуждающий кубик" -------------
-
+/*
   int8_t ballSize;
   CHSV ballColor;
   float vectorB[2U];
@@ -711,7 +710,7 @@ if (loadingFlag) {
       drawPixelXYF(coordB[0U] + i, coordB[1U] + j, ballColor);
     }
   }
-}
+}*/
 //-------------------Светлячки со шлейфом----------------------------
 #define BALLS_AMOUNT          (3U)                          // количество "шариков"
 #define CLEAR_PATH            (1U)                          // очищать путь
@@ -1179,7 +1178,7 @@ void drift2Routine() {
   }
   uint8_t dim = beatsin8(2, 170, 250);
   dimAll(dim);
-  //FastLED.clear();
+  // memset8( leds, 0, NUM_LEDS * 3) ;
 
   for (uint8_t i = 0; i < WIDTH; i++)
   {
@@ -1211,7 +1210,7 @@ void drift2Routine() {
     setCurrentPalette();
   }
   dimAll(255U - modes[currentMode].Speed / 10);
-  //FastLED.clear();
+  // memset8( leds, 0, NUM_LEDS * 3) ;
 
   // the horizontal position of the head of the infinity sign
   // oscillates from 0 to the maximum horizontal and back
@@ -1577,7 +1576,7 @@ void PrismataRoutine() {
   EVERY_N_MILLIS(33) {
     hue++; // используем переменную сдвига оттенка из функций радуги, чтобы не занимать память
   }
-  FastLED.clear();
+   memset8( leds, 0, NUM_LEDS * 3) ;
 
   for (uint8_t x = 0; x < WIDTH; x++)
   {
@@ -1618,7 +1617,7 @@ void lightersRoutine()
   }
 
 
-  FastLED.clear();
+   memset8( leds, 0, NUM_LEDS * 3) ;
 
   // движение шариков
   for (uint8_t j = 0U; j < BALLS_AMOUNT2; j++)
@@ -1672,7 +1671,7 @@ void BBallsRoutine() {
   if (loadingFlag)
   {
     loadingFlag = false;
-    FastLED.clear();
+     memset8( leds, 0, NUM_LEDS * 3) ;
     bballsNUM = (modes[currentMode].Scale - 1U) / 99.0 * (bballsMaxNUM - 1U) + 1U;
     if (bballsNUM > bballsMaxNUM) bballsNUM = bballsMaxNUM;
     for (uint8_t i = 0 ; i < bballsNUM ; i++) {             // Initialize variables
@@ -1802,7 +1801,7 @@ void BBallsRoutine() {
   {
     loadingFlag = false;
     setCurrentPalette();
-    //FastLED.clear();
+    // memset8( leds, 0, NUM_LEDS * 3) ;
     //bballsNUM = (modes[currentMode].Scale - 1U) / 99.0 * (bballsMaxNUM - 1U) + 1U;
     bballsNUM = (modes[currentMode].Scale - 1U) % 11U / 10.0 * (bballsMaxNUM - 1U) + 1U;
     if (bballsNUM > bballsMaxNUM) bballsNUM = bballsMaxNUM;
@@ -1816,7 +1815,7 @@ void BBallsRoutine() {
       bballsCOLOR[i] = random8();
     }
   }
-  FastLED.clear();
+   memset8( leds, 0, NUM_LEDS * 3) ;
 
   for (uint8_t i = 0; i < bballsNUM; i++) {
     LeapersMove_leaper(i);
@@ -1851,7 +1850,7 @@ void cube2dRoutine(){
     {
       loadingFlag = false;
       setCurrentPalette();
-      FastLED.clear();
+       memset8( leds, 0, NUM_LEDS * 3) ;
 
       razmerX = (modes[currentMode].Scale - 1U) % 11U + 1U; // размер ячейки от 1 до 11 пикселей для каждой из 9 палитр
       razmerY = razmerX;

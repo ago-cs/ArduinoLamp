@@ -35,11 +35,10 @@ void effectsTick() {
         case 27: ballRoutine();                 break;
         case 28: ballsRoutine();                break;
         case 29: fire2012WithPalette();         break;
-        case 30: lightersRoutine();             break;
-        case 31: lightBallsRoutine();           break;
-        case 32: pulseRoutine(1);               break;
-        case 33: ringsRoutine();                break;
-        case 34: MunchRoutine();                break;
+        case 30: starRoutine();                 break;     
+        case 31: pulseRoutine(1);               break;
+        case 32: ringsRoutine();                break;
+        case 33: MunchRoutine();                break;
 
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
@@ -89,7 +88,7 @@ void changePower() {    // плавное включение/выключени�
       delay(1);
       FastLED.show();
     }
-    FastLED.clear();
+     memset8( leds, 0, NUM_LEDS * 3) ;
     delay(2);
     FastLED.show();
   }
@@ -101,7 +100,7 @@ void demo() {
       currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
     else
       currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
-    FastLED.clear();
+     memset8( leds, 0, NUM_LEDS * 3) ;
     DemTimer = millis() + DEMOTIMELIMIT;
     loadingFlag = true;
   }

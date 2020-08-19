@@ -1,6 +1,6 @@
 uint32_t effTimer;
 byte ind;
-void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 5 || currentMode > 16) ? modes[currentMode].Speed : 50) ) {effTimer = millis(); switch (currentMode) {
+void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 5 || currentMode > 19) ? modes[currentMode].Speed : 50) ) {effTimer = millis(); switch (currentMode) {
 //|номер   |название функции эффекта     |тоже надо|
    case 0 : sparklesRoutine();             break;
    case 1 : fireRoutine();                 break;
@@ -18,16 +18,16 @@ void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 5 ||
    case 14: oceanNoise();                  break;
    case 15: heatNoise();                   break;
    case 16: smokeNoise();                  break;
-   case 17: lavLampNoise();                break; 
-   case 18: colorRoutine();                break;
-   case 19: colorsRoutine();               break;
-   case 20: whiteLamp();                   break;
-   case 21: matrixRoutine();               break;
-   case 22: snowRoutine();                 break;
-   case 23: stormRoutine2(true);           break;
-   case 24: stormRoutine2(false);          break;
-   case 25: ballRoutine();                 break;
-   case 26: ballsRoutine();                break;
+   case 17: colorRoutine();                break;
+   case 18: colorsRoutine();               break;
+   case 19: whiteLamp();                   break;
+   case 20: matrixRoutine();               break;
+   case 21: snowRoutine();                 break;
+   case 22: stormRoutine2(true);           break;
+   case 23: stormRoutine2(false);          break;
+   case 24: ballRoutine();                 break;
+   case 25: ballsRoutine();                break;
+   case 26: MunchRoutine();                break;
 }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:
@@ -76,7 +76,7 @@ void changePower() {    // плавное включение/выключени�
       delay(1);
       FastLED.show();
     }
-    FastLED.clear();
+    memset8( leds, 0, NUM_LEDS * 3);
     delay(2);
     FastLED.show();
   }
@@ -88,7 +88,7 @@ void changePower() {    // плавное включение/выключени�
     currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
     else 
     currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
-    FastLED.clear();
+    memset8( leds, 0, NUM_LEDS * 3);
     DemTimer = millis() + DEMOTIMELIMIT;
     loadingFlag = true;}
 }

@@ -10,7 +10,6 @@
 #include <FastLED.h>
 #include <GyverButtonOld.h>
 //-----------------            -----------------
-#define FASTLED_USE_PROGMEM 1 // просим библиотеку FASTLED экономить память контроллера на свои палитры
 #include "Constants.h"
 // ----------------- ПЕРЕМЕННЫЕ ------------------
 static const byte maxDim = max(WIDTH, HEIGHT);
@@ -28,7 +27,7 @@ void setup() {
   FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS)/*.setCorrection( TypicalLEDStrip )*/;
   FastLED.setBrightness(BRIGHTNESS);
   if (CURRENT_LIMIT > 0) FastLED.setMaxPowerInVoltsAndMilliamps(5, CURRENT_LIMIT);
-  FastLED.clear();
+  memset8( leds, 0, NUM_LEDS * 3);
   FastLED.show();
 
   touch.setStepTimeout(100);
