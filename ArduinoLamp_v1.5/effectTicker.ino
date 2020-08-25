@@ -2,43 +2,42 @@ uint32_t effTimer;
 byte ind;
 void effectsTick() {
   {
-    if (ONflag && millis() - effTimer >= ((currentMode < 6 || currentMode > 21) ? modes[currentMode].Speed : 50) ) {
+    if (ONflag && millis() - effTimer >= ((currentMode < 6 || currentMode > 23) ? modes[currentMode].Speed : 50) ) {
       effTimer = millis(); switch (currentMode) {
         //|номер   |название функции эффекта   |тоже надо|
-        case 0 : sparklesRoutine();             break;
+        case 0 : fire2012again();               break;
         case 1 : fireRoutine();                 break;
         case 2 : rainbowVertical();             break;
         case 3 : rainbowHorizontal();           break;
         case 4 : rainbowDiagonalRoutine();      break;
         case 5 : WaveRoutine();                 break;
-        case 6 : BBallsRoutine();               break;
-        case 7 : SinusoidRoutine();             break;
-        case 8 : MetaBallsRoutine();            break;
-        case 9 : PrismataRoutine();             break;
-        case 10: madnessNoise();                break;
-        case 11: cloudNoise();                  break;
-        case 12: lavaNoise();                   break;
-        case 13: plasmaNoise();                 break;
-        case 14: rainbowNoise();                break;
-        case 15: rainbowStripeNoise();          break;
-        case 16: zebraNoise();                  break;
-        case 17: forestNoise();                 break;
-        case 18: oceanNoise();                  break;
-        case 19: heatNoise();                   break;
-        case 20: smokeNoise();                  break;
-        case 21: lavLampNoise();                break;
-        case 22: colorRoutine();                break;
-        case 23: colorsRoutine();               break;
-        case 24: RainRoutine();                 break;
-        case 25: stormRoutine2(true);           break;
-        case 26: stormRoutine2(false);          break;
-        case 27: ballRoutine();                 break;
-        case 28: ballsRoutine();                break;
-        case 29: fire2012WithPalette();         break;
-        case 30: starRoutine();                 break;     
-        case 31: pulseRoutine(1);               break;
-        case 32: ringsRoutine();                break;
-        case 33: MunchRoutine();                break;
+        case 6 : BBallsRoutine();               break; 
+        case 7 : ballRoutine();                 break;
+        case 8 : ballsRoutine();                break;
+        case 9 : SinusoidRoutine();             break;
+        case 10: MetaBallsRoutine();            break;
+        case 11: prismataRoutine();             break;
+        case 12: madnessNoise();                break;
+        case 13: cloudNoise();                  break;
+        case 14: lavaNoise();                   break;
+        case 15: plasmaNoise();                 break;
+        case 16: rainbowNoise();                break;
+        case 17: rainbowStripeNoise();          break;
+        case 18: zebraNoise();                  break;
+        case 19: forestNoise();                 break;
+        case 20: oceanNoise();                  break;
+        case 21: heatNoise();                   break;
+        case 22: smokeNoise();                  break;
+        case 23: colorRoutine();                break;
+        case 24: colorsRoutine();               break;
+        case 25: RainRoutine();                 break;
+        case 26: stormRoutine2(true);           break;
+        case 27: stormRoutine2(false);          break;
+        case 28: fire2012WithPalette();         break;   
+        case 29: pulseRoutine(1);               break;
+        case 30: ringsRoutine();                break;
+        case 31: MunchRoutine();                break;
+        case 32: sparklesRoutine();             break;
 
       }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба

@@ -15,23 +15,6 @@ uint8_t noise[WIDTH][WIDTH];
 uint8_t noise[HEIGHT][HEIGHT];
 #endif
 
-CRGBPalette16 pPalette;
-
-// This function sets up a palette of black and blue stripes,
-// using code.  Since the palette is effectively an array of
-// sixteen CRGB colors, the various fill_* functions can be used
-// to set them up.
-void SetupPalette()
-{
-    fill_solid( pPalette, 16, CHSV(modes[currentMode].Scale * 2.5, 255, 75));
-
-    for (uint8_t i = 0; i < 6; i++) {
-      pPalette[i] = CHSV(modes[currentMode].Scale * 2.5, 255, 255);
-
-    }
-  }
-
-
 CRGBPalette16 currentPalette(PartyColors_p);
 uint8_t colorLoop = 1;
 uint8_t ihue = 0;
@@ -152,6 +135,8 @@ void cloudNoise()
     colorLoop = 0;
   }
   fillNoiseLED(0.125, 0.0625, 1);
+
+  
 }
 
 void lavaNoise()
@@ -191,20 +176,6 @@ void smokeNoise()
     colorLoop = 0;
   }
   fillNoiseLED(1, 0.625, 0.125);
-}
-
-void lavLampNoise()
-{
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    SetupPalette();
-    currentPalette = pPalette;
-    scale = 30;
-    speed = modes[currentMode].Speed;
-    colorLoop = 0;
-  }
-  fillNoiseLED(1, 0, 0.125);
 }
 // ************* СЛУЖЕБНЫЕ *************
 void fillNoiseLED(byte x_dir, byte y_dir, byte z_dir)
@@ -262,7 +233,7 @@ void fillNoiseLED(byte x_dir, byte y_dir, byte z_dir)
         bri = dim8_raw( bri * 2);
       }
       CRGB color = ColorFromPalette( currentPalette, index, bri);
-      leds[XY(i, j)] = color;
+      drawPixelXY(i, j, color);
     }
   }
   ihue += 1;
