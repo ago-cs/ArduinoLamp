@@ -392,20 +392,37 @@ void SinusoidRoutine()
     for (uint8_t x = 0; x < WIDTH; x++) {
       CRGB color;
 
-      float cx = y + float(e_s3_size * (sinf (float(e_s3_Speed * 0.003 * time_shift)))) - semiHeightMajor;  // the 8 centers the middle on a 16x16
+      /*float cx = y + float(e_s3_size * (sinf (float(e_s3_Speed * 0.003 * time_shift)))) - semiHeightMajor;  // the 8 centers the middle on a 16x16
       float cy = x + float(e_s3_size * (cosf (float(e_s3_Speed * 0.0022 * time_shift)))) - semiWidthMajor;
       float v = 127 * (1 + sinf ( sqrtf ( ((cx * cx) + (cy * cy)) ) ));
-      color.r = v;
+      color.r = ~v;
 
       cx = x + float(e_s3_size * (sinf (e_s3_Speed * float(0.0021 * time_shift)))) - semiWidthMajor;
       cy = y + float(e_s3_size * (cosf (e_s3_Speed * float(0.002 * time_shift)))) - semiHeightMajor;
       v = 127 * (1 + sinf ( sqrtf ( ((cx * cx) + (cy * cy)) ) ));
-      color.b = v;
+      color.b = ~v;
 
       cx = x + float(e_s3_size * (sinf (e_s3_Speed * float(0.0041 * time_shift)))) - semiWidthMajor;
       cy = y + float(e_s3_size * (cosf (e_s3_Speed * float(0.0052 * time_shift)))) - semiHeightMajor;
       v = 127 * (1 + sinf ( sqrtf ( ((cx * cx) + (cy * cy)) ) ));
-      color.g = v;
+      color.g = ~v;*/
+
+      uint8_t _scale = map8(255-modes[currentMode].Scale,50,150);
+
+      float cx = (y - semiHeightMajor) + float(e_s3_size * (sin16 (e_s3_Speed * 98.301 * time_shift)))/32767.0;  // the 8 centers the middle on a 16x16
+      float cy = (x - semiWidthMajor) + float(e_s3_size * (cos16 (e_s3_Speed * 72.0874 * time_shift)))/32767.0;
+      int8_t v = 127 * (1 + sin16 ( 127*_scale*sqrtf ( (((float)cx*cx) + ((float)cy*cy)) ) )/32767.0);
+      color.r = ~v;
+
+      cx = (y - semiHeightMajor) + float(e_s3_size * (sin16 (e_s3_Speed * 68.8107 * time_shift)))/32767.0;
+      cy = (x - semiWidthMajor) + float(e_s3_size * (cos16 (e_s3_Speed * 65.534 * time_shift)))/32767.0;
+      v = 127 * (1 + sin16 ( 127*_scale*sqrtf ( (((float)cx*cx) + ((float)cy*cy)) ) )/32767.0);
+      color.g = ~v;
+
+      cx = (y - semiHeightMajor) + float(e_s3_size * (sin16 (e_s3_Speed * 134.3447 * time_shift)))/32767.0;
+      cy = (x - semiWidthMajor) + float(e_s3_size * (cos16 (e_s3_Speed * 170.3884 * time_shift)))/32767.0;
+      v = 127 * (1 + sin16 ( 127*_scale*sqrtf ( (((float)cx*cx) + ((float)cy*cy)) ) )/32767.0);
+      color.b = ~v;
      drawPixelXY(x, y, color);
     }
   }
@@ -651,7 +668,7 @@ if (loadingFlag) {
     }
   }
 }
-//-------------------Светлячки со шлейфом----------------------------
+/* //-------------------Светлячки со шлейфом----------------------------
 #define BALLS_AMOUNT          (3U)                          // количество "шариков"
 int16_t coord[BALLS_AMOUNT][2U];
 int8_t vector[BALLS_AMOUNT][2U];
@@ -705,6 +722,69 @@ void ballsRoutine()
       vector[j][1U] = -vector[j][1U];
     }
     drawPixelXY(coord[j][0U] / 10, coord[j][1U] / 10,ballColors[j]);
+  }
+}*/
+//-------------------Светлячки со шлейфом----------------------------
+#define BALLS_AMOUNT          (3U)                          // количество "шариков"
+ float vector[BALLS_AMOUNT][2U];
+ float coord[BALLS_AMOUNT][2U];
+ int16_t ballColors[BALLS_AMOUNT];
+byte light[BALLS_AMOUNT];
+void ballsRoutine()
+{
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+
+   for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
+  {
+    int8_t sign;
+    // забиваем случайными данными
+    coord[j][0U] = (float)WIDTH / 2.0f;
+    random(0, 2) ? sign = 1 : sign = -1;
+    vector[j][0U] = ((float)random(40, 150) / 10.0f) * sign;
+    coord[j][1U] = (float)HEIGHT / 2;
+    random(0, 2) ? sign = 1 : sign = -1;
+    vector[j][1U] = ((float)random(40, 150) / 10.0f) * sign;
+    light[j] = 127;
+    }
+  }
+  fadeToBlackBy(leds, NUM_LEDS, 255 - (uint8_t)(10 * ((float)modes[currentMode].Speed) /255) + 40);
+  float speedfactor = (float)modes[currentMode].Speed / 4096.0f + 0.001f;
+
+  int maxBalls = (uint8_t)((BALLS_AMOUNT/255.0)*modes[currentMode].Scale+0.99);
+  for (uint8_t j = 0U; j < maxBalls; j++)
+  {
+    // цвет зависит от масштаба
+    ballColors[j] = modes[currentMode].Scale * (maxBalls-j) * BALLS_AMOUNT + j;
+
+    // движение шариков
+    for (uint8_t i = 0U; i < 2U; i++)
+    {
+      coord[j][i] += vector[j][i] * speedfactor;
+      if (coord[j][i] < 0)
+      {
+        coord[j][i] = 0.0f;
+        vector[j][i] = -vector[j][i];
+      }
+    }
+
+    if ((uint16_t)coord[j][0U] > (WIDTH - 1))
+    {
+      coord[j][0U] = (WIDTH - 1);
+      vector[j][0U] = -vector[j][0U];
+    }
+    if ((uint16_t)coord[j][1U] > (HEIGHT - 1))
+    {
+      coord[j][1U] = (HEIGHT - 1);
+      vector[j][1U] = -vector[j][1U];
+    }
+    EVERY_N_MILLIS(random16(1024)) {
+      if (light[j] == 127) 
+        light[j] = 255;
+      else light[j] = 127;
+    }
+    drawPixelXYF(coord[j][0U], coord[j][1U], CHSV(ballColors[j], 200U, 255U));
   }
 }
 
@@ -1261,7 +1341,7 @@ void prismataRoutine()
     }
 }
 // --------------------------- эффект мячики ----------------------
-//  BouncingBalls2014 is a program that lets you animate an LED strip
+/*//  BouncingBalls2014 is a program that lets you animate an LED strip
 //  to look like a group of bouncing balls
 //  Daniel Wilson, 2014
 //  https://github.com/githubcdr/Arduino/blob/master/bouncingballs/bouncingballs.ino
@@ -1336,7 +1416,85 @@ void BBallsRoutine() {
     }
     leds[XY(bballsX[i], bballsPos[i])] = CHSV(bballsCOLOR[i] + deltaHue, hue2, 255U);
   }
+}*/
+    uint8_t bballsNUM_BALLS; // Number of bouncing balls you want (recommend < 7, but 20 is fun in its own way) ... количество мячиков теперь задаётся бегунком, а не константой
+    #define bballsMaxNUM_BALLS            (WIDTH * 2)
+    #define bballsGRAVITY           (-9.81)
+    #define bballsH0                (1)    
+    uint8_t bballsCOLOR[bballsMaxNUM_BALLS] ;           // прикручено при адаптации для разноцветных мячиков
+    float bballsX[bballsMaxNUM_BALLS] ;               // прикручено при адаптации для распределения мячиков по радиусу лампы
+    float bballsPos[bballsMaxNUM_BALLS] ;               // The integer position of the dot on the strip (LED index)
+    float bballsHi = 0.0;                                    // An array of heights
+    float bballsVImpact[bballsMaxNUM_BALLS] ;           // As time goes on the impact velocity will change, so make an array to store those values
+    float bballsTCycle = 0.0;                                // The time since the last time the ball struck the ground
+    float bballsCOR[bballsMaxNUM_BALLS] ;               // Coefficient of Restitution (bounce damping)
+    long  bballsTLast[bballsMaxNUM_BALLS] ;             // The clock time of the last ground strike
+    float bballsShift[bballsMaxNUM_BALLS];
+    float bballsVImpact0 = sqrt( -2 * bballsGRAVITY * bballsH0 );  // Impact velocity of the ball when it hits the ground if "dropped" from the top of the strip
+    //float bballsVImpact[bballsMaxNUM_BALLS] ; 
+    byte csum = 0;
+
+void BBallsRoutine() {
+   if (loadingFlag)
+  {
+    FastLED.clear();
+    if (modes[currentMode].Scale <= 16) {
+      bballsNUM_BALLS =  map(modes[currentMode].Scale, 1, 16, 1, bballsMaxNUM_BALLS);
+    } else {
+      bballsNUM_BALLS =  map(modes[currentMode].Scale, 32, 17, 1, bballsMaxNUM_BALLS);
+    }
+    for (int i = 0 ; i < bballsNUM_BALLS ; i++) {          // Initialize variables
+      bballsCOLOR[i] = random8();
+      bballsX[i] = (float)random8(10U, WIDTH*10) / 10.0f;
+      bballsTLast[i] = millis();
+      bballsPos[i] = 0.0f;                                 // Balls start on the ground
+      bballsVImpact[i] = bballsVImpact0;                   // And "pop" up at vImpact0
+      bballsCOR[i] = 0.90f - float(i) / pow(bballsNUM_BALLS, 2);
+      bballsShift[i] = false;
+    }
+   loadingFlag = false;
+  }
+
+  if (modes[currentMode].Scale <= 16) 
+    FastLED.clear();
+  else 
+    fadeToBlackBy(leds, NUM_LEDS, 50);
+
+  for (int i = 0 ; i < bballsNUM_BALLS ; i++) {
+    bballsTCycle =  millis() - bballsTLast[i] ;     // Calculate the time since the last time the ball was on the ground
+
+    // A little kinematics equation calculates positon as a function of time, acceleration (gravity) and intial velocity
+    bballsHi = 0.5f * bballsGRAVITY * pow( bballsTCycle / (float)(1550 - modes[currentMode].Speed * 3) , 2.0 ) + bballsVImpact[i] * bballsTCycle / (float)(1525 - modes[currentMode].Speed * 3);
+
+    if ( bballsHi < 0 ) {
+      bballsTLast[i] = millis();
+      bballsHi = 0.0f;                            // If the ball crossed the threshold of the "ground," put it back on the ground
+      bballsVImpact[i] = bballsCOR[i] * bballsVImpact[i] ;   // and recalculate its new upward velocity as it's old velocity * COR
+
+
+      //if ( bballsVImpact[i] < 0.01 ) bballsVImpact[i] = bballsVImpact0;  // If the ball is barely moving, "pop" it back up at vImpact0
+      if ( bballsVImpact[i] < 0.1 ) // сделал, чтобы мячики меняли свою прыгучесть и положение каждый цикл
+      {
+        bballsCOR[i] = 0.90 - ((float)random8(0U, 90U) /10.0f) / pow(random8(40U, 90U) / 10.0f, 2); // сделал, чтобы мячики меняли свою прыгучесть каждый цикл
+        bballsShift[i] = bballsCOR[i] >= 0.89;                             // если мячик максимальной прыгучести, то разрешаем ему сдвинуться
+        bballsVImpact[i] = bballsVImpact0;
+      }
+    }
+    bballsPos[i] = bballsHi * (float)(HEIGHT - 1) / bballsH0;       // Map "h" to a "pos" integer index position on the LED strip
+    if (bballsShift[i] > 0.0f && bballsPos[i] >= (float)HEIGHT - 1.6f) {                  // если мячик получил право, то пускай сдвинется на максимальной высоте 1 раз
+      bballsShift[i] = 0.0f;
+      if (bballsCOLOR[i] % 2 == 0) {                                       // чётные налево, нечётные направо
+        if (bballsX[i] <= 0.0f) bballsX[i] = (float)(WIDTH - 1U);
+        else bballsX[i] -= 0.5f;
+      } else {
+        if (bballsX[i] >= float(WIDTH - 1U)) bballsX[i] = 0.0f;
+        else bballsX[i] += 0.5f;
+      }
+    }
+   drawPixelXYF(bballsX[i], bballsPos[i], CHSV(bballsCOLOR[i], 255, 255));
+  }
 }
+
 void fire2012again()
 {
   if (loadingFlag)
@@ -1387,4 +1545,312 @@ void fire2012again()
     else 
      nblend(leds[XY(x,y)], ColorFromPalette(CRGBPalette16( CRGB::Black, CHSV(modes[currentMode].Scale * 2.57, 255U, 255U) , CHSV(modes[currentMode].Scale * 2.57, 128U, 255U) , CRGB::White), ((noise3d[0][x][y]*0.7) + (noise3d[0][wrapX(x+1)][y]*0.3))), fireSmoothing);
   }
+}
+
+
+// --------------------------- эффект кометы ----------------------
+
+// далее идут общие процедуры для эффектов от Stefan Petrick, а непосредственно Комета - в самом низу
+const uint8_t e_centerX =  (WIDTH / 2) -  ((WIDTH - 1) & 0x01);
+const uint8_t e_centerY = (HEIGHT / 2) - ((HEIGHT - 1) & 0x01);
+int8_t zD;
+int8_t zF;
+// The coordinates for 3 16-bit noise spaces.
+#define NUM_LAYERS 1 // в кометах используется 1 слой, но для огня 2018 нужно 2
+CRGB ledsbuff[NUM_LEDS];
+uint32_t noise32_x[NUM_LAYERSMAX];
+uint32_t noise32_y[NUM_LAYERSMAX];
+uint32_t noise32_z[NUM_LAYERSMAX];
+uint32_t scale32_x[NUM_LAYERSMAX];
+uint32_t scale32_y[NUM_LAYERSMAX];
+
+uint8_t noisesmooth;
+bool eNs_isSetupped;
+
+void eNs_setup() {
+  noisesmooth = 200;
+  for (uint8_t i = 0; i < NUM_LAYERS; i++) {
+    noise32_x[i] = random16();
+    noise32_y[i] = random16();
+    noise32_z[i] = random16();
+    scale32_x[i] = 6000;
+    scale32_y[i] = 6000;
+  }
+  eNs_isSetupped = true;
+}
+
+void FillNoise(int8_t layer) {
+  for (uint8_t i = 0; i < WIDTH; i++) {
+    int32_t ioffset = scale32_x[layer] * (i - e_centerX);
+    for (uint8_t j = 0; j < HEIGHT; j++) {
+      int32_t joffset = scale32_y[layer] * (j - e_centerY);
+      int8_t data = inoise16(noise32_x[layer] + ioffset, noise32_y[layer] + joffset, noise32_z[layer]) >> 8;
+      int8_t olddata = noise3d[layer][i][j];
+      int8_t newdata = scale8( olddata, noisesmooth ) + scale8( data, 255 - noisesmooth );
+      data = newdata;
+      noise3d[layer][i][j] = data;
+    }
+  }
+}
+/* кажется, эти функции вообще не используются
+void MoveX(int8_t delta) {
+  //CLS2();
+  for (uint8_t y = 0; y < HEIGHT; y++) {
+    for (uint8_t x = 0; x < WIDTH - delta; x++) {
+      ledsbuff[XY(x, y)] = leds[XY(x + delta, y)];
+    }
+    for (uint8_t x = WIDTH - delta; x < WIDTH; x++) {
+      ledsbuff[XY(x, y)] = leds[XY(x + delta - WIDTH, y)];
+    }
+  }
+  //CLS();
+  // write back to leds
+  memcpy(leds, ledsbuff, sizeof(CRGB)* NUM_LEDS);
+  //какого хера тут было поштучное копирование - я хз
+  //for (uint8_t y = 0; y < HEIGHT; y++) {
+  //  for (uint8_t x = 0; x < WIDTH; x++) {
+  //    leds[XY(x, y)] = ledsbuff[XY(x, y)];
+  //  }
+  //}
+}
+
+void MoveY(int8_t delta) {
+  //CLS2();
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    for (uint8_t y = 0; y < HEIGHT - delta; y++) {
+      ledsbuff[XY(x, y)] = leds[XY(x, y + delta)];
+    }
+    for (uint8_t y = HEIGHT - delta; y < HEIGHT; y++) {
+      ledsbuff[XY(x, y)] = leds[XY(x, y + delta - HEIGHT)];
+    }
+  }
+  //CLS();
+  // write back to leds
+  memcpy(leds, ledsbuff, sizeof(CRGB)* NUM_LEDS);
+  //какого хера тут было поштучное копирование - я хз
+  //for (uint8_t y = 0; y < HEIGHT; y++) {
+  //  for (uint8_t x = 0; x < WIDTH; x++) {
+  //    leds[XY(x, y)] = ledsbuff[XY(x, y)];
+  //  }
+  //}
+}
+*/
+void MoveFractionalNoiseX(int8_t amplitude = 1, float shift = 0) {
+  for (uint8_t y = 0; y < HEIGHT; y++) {
+    int16_t amount = ((int16_t)noise3d[0][0][y] - 128) * 2 * amplitude + shift * 256  ;
+    int8_t delta = abs(amount) >> 8 ;
+    int8_t fraction = abs(amount) & 255;
+    for (uint8_t x = 0 ; x < WIDTH; x++) {
+      if (amount < 0) {
+        zD = x - delta; zF = zD - 1;
+      } else {
+        zD = x + delta; zF = zD + 1;
+      }
+      CRGB PixelA = CRGB::Black  ;
+      if ((zD >= 0) && (zD < WIDTH)) PixelA = leds[XY(zD, y)];
+      CRGB PixelB = CRGB::Black ;
+      if ((zF >= 0) && (zF < WIDTH)) PixelB = leds[XY(zF, y)];
+      ledsbuff[XY(x, y)] = (PixelA.nscale8(ease8InOutApprox(255 - fraction))) + (PixelB.nscale8(ease8InOutApprox(fraction)));   // lerp8by8(PixelA, PixelB, fraction );
+    }
+  }
+  memcpy(leds, ledsbuff, sizeof(CRGB)* NUM_LEDS);
+}
+
+void MoveFractionalNoiseY(int8_t amplitude = 1, float shift = 0) {
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    int16_t amount = ((int16_t)noise3d[0][x][0] - 128) * 2 * amplitude + shift * 256 ;
+    int8_t delta = abs(amount) >> 8 ;
+    int8_t fraction = abs(amount) & 255;
+    for (uint8_t y = 0 ; y < HEIGHT; y++) {
+      if (amount < 0) {
+        zD = y - delta; zF = zD - 1;
+      } else {
+        zD = y + delta; zF = zD + 1;
+      }
+      CRGB PixelA = CRGB::Black ;
+      if ((zD >= 0) && (zD < HEIGHT)) PixelA = leds[XY(x, zD)];
+      CRGB PixelB = CRGB::Black ;
+      if ((zF >= 0) && (zF < HEIGHT)) PixelB = leds[XY(x, zF)];
+      ledsbuff[XY(x, y)] = (PixelA.nscale8(ease8InOutApprox(255 - fraction))) + (PixelB.nscale8(ease8InOutApprox(fraction)));
+    }
+  }
+  memcpy(leds, ledsbuff, sizeof(CRGB)* NUM_LEDS);
+}
+
+// NoiseSmearing(by StefanPetrick) Effect mod for GyverLamp by PalPalych
+void MultipleStream() { // 2 comets
+  //dimAll(192); // < -- затухание эффекта для последующего кадрв
+  dimAll(255U - modes[currentMode].Scale * 2);
+
+
+  // gelb im Kreis
+  byte xx = 2 + sin8( millis() / 10) / 22;
+  byte yy = 2 + cos8( millis() / 10) / 22;
+if (xx < WIDTH && yy < HEIGHT)
+  leds[XY( xx, yy)] = 0xFFFF00;
+
+  // rot in einer Acht
+  xx = 4 + sin8( millis() / 46) / 32;
+  yy = 4 + cos8( millis() / 15) / 32;
+if (xx < WIDTH && yy < HEIGHT)
+  drawPixelXY( xx, yy,0xFF0000);
+
+  // Noise
+  noise32_x[0] += 3000;
+  noise32_y[0] += 3000;
+  noise32_z[0] += 3000;
+  scale32_x[0] = 8000;
+  scale32_y[0] = 8000;
+  FillNoise(0);
+  MoveFractionalNoiseX(3, 0.33);
+  MoveFractionalNoiseY(3);
+}
+
+void MultipleStream2() { // 3 comets
+  //dimAll(220); // < -- затухание эффекта для последующего кадрв
+  dimAll(255U - modes[currentMode].Scale * 2);
+
+  byte xx = 2 + sin8( millis() / 10) / 22;
+  byte yy = 2 + cos8( millis() / 9) / 22;
+if (xx < WIDTH && yy < HEIGHT)
+  leds[XY( xx, yy)] += 0x0000FF;
+
+  xx = 4 + sin8( millis() / 10) / 32;
+  yy = 4 + cos8( millis() / 7) / 32;
+if (xx < WIDTH && yy < HEIGHT)
+  leds[XY( xx, yy)] += 0xFF0000;
+  leds[XY( e_centerX, e_centerY)] += 0xFFFF00;
+
+  noise32_x[0] += 3000;
+  noise32_y[0] += 3000;
+  noise32_z[0] += 3000;
+  scale32_x[0] = 8000;
+  scale32_y[0] = 8000;
+  FillNoise(0);
+  MoveFractionalNoiseX(2);
+  MoveFractionalNoiseY(2, 0.33);
+}
+
+void MultipleStream3() { // Fireline
+  blurScreen(20); // без размытия как-то пиксельно, по-моему...
+  //dimAll(160); // < -- затухание эффекта для последующего кадров
+  dimAll(255U - modes[currentMode].Scale * 2);
+  for (uint8_t i = 1; i < WIDTH; i += 3) {
+    leds[XY( i, e_centerY)] += CHSV(i * 2 , 255, 255);
+  }
+  // Noise
+  noise32_x[0] += 3000;
+  noise32_y[0] += 3000;
+  noise32_z[0] += 3000;
+  scale32_x[0] = 8000;
+  scale32_y[0] = 8000;
+  FillNoise(0);
+  MoveFractionalNoiseY(3);
+  MoveFractionalNoiseX(3);
+}
+
+void MultipleStream5() { // Fractorial Fire
+  blurScreen(20); // без размытия как-то пиксельно, по-моему...
+  //dimAll(140); // < -- затухание эффекта для последующего кадрв
+  dimAll(255U - modes[currentMode].Scale * 2);
+  for (uint8_t i = 1; i < WIDTH; i += 2) {
+    leds[XY( i, WIDTH - 1)] += CHSV(i * 2, 255, 255);
+  }
+  // Noise
+  noise32_x[0] += 3000;
+  noise32_y[0] += 3000;
+  noise32_z[0] += 3000;
+  scale32_x[0] = 8000;
+  scale32_y[0] = 8000;
+  FillNoise(0);
+  //MoveX(1);
+  //MoveY(1);
+  MoveFractionalNoiseY(2, 1);
+  MoveFractionalNoiseX(2);
+}
+
+void MultipleStream4() { // Comet
+  //dimAll(184); // < -- затухание эффекта для последующего кадрв
+  dimAll(255U - modes[currentMode].Scale * 2);
+  
+  CRGB _eNs_color = CHSV(millis(), 255, 255);
+  leds[XY( e_centerX, e_centerY)] += _eNs_color;
+  // Noise
+  noise32_x[0] += 2000;
+  noise32_y[0] += 2000;
+  noise32_z[0] += 2000;
+  scale32_x[0] = 4000;
+  scale32_y[0] = 4000;
+  FillNoise(0);
+  MoveFractionalNoiseX(6);
+  MoveFractionalNoiseY(5, -0.5);
+}
+
+void MultipleStream8() { // Windows ))
+  dimAll(96); // < -- затухание эффекта для последующего кадрв на 96/255*100=37%
+  //dimAll(255U - modes[currentMode].Scale * 2); // так какая-то хрень получается
+  for (uint8_t y = 2; y < HEIGHT; y += 5) {
+    for (uint8_t x = 2; x < WIDTH; x += 5) {
+      drawPixelXY(x, y, CHSV(hue + x * y , 255, 255));
+      drawPixelXY(x + 1, y,CHSV(hue + (x + 4) * y, 255, 255));
+      drawPixelXY(x, y + 1, CHSV(hue + x * (y + 4), 255, 255));
+      drawPixelXY(x + 1, y + 1,CHSV(hue + (x + 4) * (y + 4), 255, 255));
+    }
+  }
+  // Noise
+  noise32_x[0] += 3000;
+  noise32_y[0] += 3000;
+  noise32_z[0] += 3000;
+  scale32_x[0] = 8000;
+  scale32_y[0] = 8000;
+  FillNoise(0);
+ 
+  MoveFractionalNoiseX(3);
+  MoveFractionalNoiseY(3);
+  hue++;
+}
+
+
+
+//  Follow the Rainbow Comet by Palpalych (Effect for GyverLamp 02/03/2020) //
+
+// Кометы обычные
+void RainbowCometRoutine() {      // <- ******* для оригинальной прошивки Gunner47 ******* (раскомментить/закоментить)
+  dimAll(254U); // < -- затухание эффекта для последующего кадра
+  CRGB _eNs_color = CHSV(millis() / modes[currentMode].Scale * 2, 255, 255);
+  leds[XY(e_centerX, e_centerY)] += _eNs_color;
+  leds[XY(e_centerX + 1, e_centerY)] += _eNs_color;
+  leds[XY(e_centerX, e_centerY + 1)] += _eNs_color;
+  leds[XY(e_centerX + 1, e_centerY + 1)] += _eNs_color;
+
+  // Noise
+  noise32_x[0] += 1500;
+  noise32_y[0] += 1500;
+  noise32_z[0] += 1500;
+  scale32_x[0] = 8000;
+  scale32_y[0] = 8000;
+  FillNoise(0);
+  MoveFractionalNoiseX(WIDTH / 2U - 1U);
+  MoveFractionalNoiseY(HEIGHT / 2U - 1U);
+}
+
+// Кометы белые и одноцветные
+void ColorCometRoutine() {      // <- ******* для оригинальной прошивки Gunner47 ******* (раскомментить/закоментить)
+  dimAll(254U); // < -- затухание эффекта для последующего кадра
+  CRGB _eNs_color = CRGB::White;
+  if (modes[currentMode].Scale < 100) _eNs_color = CHSV((modes[currentMode].Scale) * 2.57, 255, 255); // 2.57 вместо 2.55, потому что при 100 будет белый цвет
+  leds[XY(e_centerX, e_centerY)] += _eNs_color;
+  leds[XY(e_centerX + 1, e_centerY)] += _eNs_color;
+  leds[XY(e_centerX, e_centerY + 1)] += _eNs_color;
+  leds[XY(e_centerX + 1, e_centerY + 1)] += _eNs_color;
+
+  // Noise
+  noise32_x[0] += 1500;
+  noise32_y[0] += 1500;
+  noise32_z[0] += 1500;
+  scale32_x[0] = 8000;
+  scale32_y[0] = 8000;
+  FillNoise(0);
+  MoveFractionalNoiseX(WIDTH / 2U - 1U);
+  MoveFractionalNoiseY(HEIGHT / 2U - 1U);
 }
