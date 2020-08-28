@@ -1,7 +1,8 @@
-boolean brightDirection, speedDirection, scaleDirection;
+//boolean brightDirection, speedDirection, scaleDirection;
 
 void buttonTick() {
   touch.tick();
+  touch2.tick();
 
   if (touch.isSingle()) {
     {
@@ -24,7 +25,7 @@ void buttonTick() {
        memset8( leds, 0, NUM_LEDS * 3) ;
       delay(1);
     }
-    if (touch.isTriple()) {
+    if (touch2.isDouble()) {
       if (--currentMode < 0) currentMode = MODE_AMOUNT - 1;
       FastLED.setBrightness(modes[currentMode].Brightness);
       loadingFlag = true;
@@ -32,8 +33,7 @@ void buttonTick() {
        memset8( leds, 0, NUM_LEDS * 3) ;
       delay(1);
     }
-    if (touch.hasClicks())
-      if (touch.getClicks() == 5) {      // если было пятикратное нажатие на кнопку, то производим сохранение параметров
+    if (touch.isTriple()){
         if (EEPROM.read(0) != 102) EEPROM.write(0, 102);
         if (EEPROM.read(1) != currentMode) EEPROM.write(1, currentMode);  // запоминаем текущий эфект
         for (byte x = 0; x < MODE_AMOUNT; x++) {                          // сохраняем настройки всех режимов
@@ -48,24 +48,24 @@ void buttonTick() {
         ONflag = true;
         changePower();
       }
-      else if (touch.getClicks() == 4) {     // если было четырёхкратное нажатие на кнопку, то переключаем демо
+      if (touch2.isSingle()) {     // если было четырёхкратное нажатие на кнопку, то переключаем демо
         isDemo = !isDemo;
         DemTimer = 0UL;
       }
 
 
     if (touch.isHolded()) {  // изменение яркости при удержании кнопки
-      brightDirection = !brightDirection;
+      //brightDirection = !brightDirection;
       numHold = 1;
     }
 
     if (touch.isHolded2()) {  // изменение скорости "speed" при двойном нажатии и удержании кнопки
-      speedDirection = !speedDirection;
+      //speedDirection = !speedDirection;
       numHold = 2;
     }
 
     if (touch.isHolded3()) {  // изменение масштаба "scale" при тройном нажатии и удержании кнопки
-      scaleDirection = !scaleDirection;
+      //scaleDirection = !scaleDirection;
       numHold = 3;
     }
 
@@ -73,17 +73,48 @@ void buttonTick() {
       if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
       switch (numHold) {
         case 1:
-          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (brightDirection * 2 - 1), 1 , 255);
+          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (2 - 1), 1 , 255);
           break;
         case 2:
-          modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1) * (speedDirection * 2 - 1), 1 , 255);
+          modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1) * (2 - 1), 1 , 255);
           break;
 
         case 3:
-          modes[currentMode].Scale = constrain(modes[currentMode].Scale + (modes[currentMode].Scale / 25 + 1) * (scaleDirection * 2 - 1), 1 , 255);
+          modes[currentMode].Scale = constrain(modes[currentMode].Scale + (modes[currentMode].Scale / 25 + 1) * (2 - 1), 1 , 255);
           break;
       }
     }
+        if (touch2.isHolded()) {  // изменение яркости при удержании кнопки
+     // brightDirection = !brightDirection;
+      numHold = 1;
+    }
+
+    if (touch2.isHolded2()) {  // изменение скорости "speed" при двойном нажатии и удержании кнопки
+      //speedDirection = !speedDirection;
+      numHold = 2;
+    }
+
+    if (touch2.isHolded3()) {  // изменение масштаба "scale" при тройном нажатии и удержании кнопки
+      //scaleDirection = !scaleDirection;
+      numHold = 3;
+    }
+if (touch2.isStep()) {
+      if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
+      switch (numHold) {
+        case 1:
+          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness - (modes[currentMode].Brightness / 25 + 1) * (2 - 1), 1 , 255);
+          break;
+        case 2:
+          modes[currentMode].Speed = constrain(modes[currentMode].Speed - (modes[currentMode].Speed / 25 + 1) * (2 - 1), 1 , 255);
+          break;
+
+        case 3:
+          modes[currentMode].Scale = constrain(modes[currentMode].Scale - (modes[currentMode].Scale / 25 + 1) * (2 - 1), 1 , 255);
+          break;
+      }
+    }
+
+    
     if ((millis() - numHold_Timer) > numHold_Time) {
       numHold = 0;
       numHold_Timer = millis();

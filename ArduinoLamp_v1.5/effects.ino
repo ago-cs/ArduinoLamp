@@ -41,7 +41,7 @@ void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
 }
 void dimAll(uint8_t value) {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i].nscale8(value); //fadeToBlackBy
+    fadeToBlackBy (leds, NUM_LEDS, 255U - value);  //fadeToBlackBy
   }
 }
 void drawPixelXYF(float x, float y, const CRGB &color)
@@ -1053,51 +1053,51 @@ void RainRoutine()
    Copyright (c) 2014 Jason Coon
    Неполная адаптация SottNick
 */
-byte spirotheta1 = 0;
-byte spirotheta2 = 0;
+float spirotheta1 = 0;
+float spirotheta2 = 0;
 //    byte spirohueoffset = 0; // будем использовать переменную сдвига оттенка hue из эффектов Радуга
 
 
-const uint8_t spiroradiusx = WIDTH / 4;
-const uint8_t spiroradiusy = HEIGHT / 4;
+const float spiroradiusx = WIDTH / 4;
+const float spiroradiusy = HEIGHT / 4;
 
-const uint8_t spirocenterX = WIDTH / 2;
-const uint8_t spirocenterY = HEIGHT / 2;
+const float spirocenterX = WIDTH / 2-1;
+const float spirocenterY = HEIGHT / 2-1;
 
-const uint8_t spirominx = spirocenterX - spiroradiusx;
-const uint8_t spiromaxx = spirocenterX + spiroradiusx + 1;
-const uint8_t spirominy = spirocenterY - spiroradiusy;
-const uint8_t spiromaxy = spirocenterY + spiroradiusy + 1;
+const float spirominx = spirocenterX - spiroradiusx;
+const float spiromaxx = spirocenterX + spiroradiusx + 1;
+const float spirominy = spirocenterY - spiroradiusy;
+const float spiromaxy = spirocenterY + spiroradiusy + 1;
 
-uint8_t spirocount = 1;
-uint8_t spirooffset = 256 / spirocount;
+float spirocount = 1;
+float spirooffset = 256 / spirocount;
 boolean spiroincrement = false;
 
 boolean spirohandledChange = false;
 
-uint8_t mapsin8(uint8_t theta, uint8_t lowest = 0, uint8_t highest = 255) {
-  uint8_t beatsin = sin8(theta);
-  uint8_t rangewidth = highest - lowest;
-  uint8_t Scaledbeat = scale8(beatsin, rangewidth);
-  uint8_t result = lowest + Scaledbeat;
+float mapsin8(uint8_t theta, uint8_t lowest = 0, uint8_t highest = 255) {
+  float beatsin = sinf(theta);
+  float rangewidth = highest - lowest;
+  float Scaledbeat = scale8(beatsin, rangewidth);
+  float result = lowest + Scaledbeat;
   return result;
 }
 
-uint8_t mapcos8(uint8_t theta, uint8_t lowest = 0, uint8_t highest = 255) {
-  uint8_t beatcos = cos8(theta);
-  uint8_t rangewidth = highest - lowest;
-  uint8_t Scaledbeat = scale8(beatcos, rangewidth);
-  uint8_t result = lowest + Scaledbeat;
+float mapcos8(uint8_t theta, uint8_t lowest = 0, uint8_t highest = 255) {
+  float beatcos = cosf(theta);
+  float rangewidth = highest - lowest;
+  float Scaledbeat = scale8(beatcos, rangewidth);
+  float result = lowest + Scaledbeat;
   return result;
 }
 
-uint8_t beatcos8(accum88 beats_per_minute, uint8_t lowest = 0, uint8_t highest = 255, uint32_t timebase = 0, uint8_t phase_offset = 0)
+float beatcos8(accum88 beats_per_minute, uint8_t lowest = 0, uint8_t highest = 255, uint32_t timebase = 0, uint8_t phase_offset = 0)
 {
-  uint8_t beat = beat8(beats_per_minute, timebase);
-  uint8_t beatcos = cos8(beat + phase_offset);
-  uint8_t rangewidth = highest - lowest;
-  uint8_t scaledbeat = scale8(beatcos, rangewidth);
-  uint8_t result = lowest + scaledbeat;
+  float beat = beat8(beats_per_minute, timebase);
+  float beatcos = cosf(beat + phase_offset);
+  float rangewidth = highest - lowest;
+  float scaledbeat = scale8(beatcos, rangewidth);
+  float result = lowest + scaledbeat;
   return result;
 }
 
@@ -1114,18 +1114,18 @@ void spiroRoutine() {
   boolean change = false;
 
   for (uint8_t i = 0; i < spirocount; i++) {
-    uint8_t x = mapsin8(spirotheta1 + i * spirooffset, spirominx, spiromaxx);
-    uint8_t y = mapcos8(spirotheta1 + i * spirooffset, spirominy, spiromaxy);
+    float x = (float)mapsin8(spirotheta1 + i * spirooffset, spirominx, spiromaxx);
+    float y = (float)mapcos8(spirotheta1 + i * spirooffset, spirominy, spiromaxy);
 
-    uint8_t x2 = mapsin8(spirotheta2 + i * spirooffset, x - spiroradiusx, x + spiroradiusx);
-    uint8_t y2 = mapcos8(spirotheta2 + i * spirooffset, y - spiroradiusy, y + spiroradiusy);
+    float x2 = (float)mapsin8(spirotheta2 + i * spirooffset, x - spiroradiusx, x + spiroradiusx);
+    float y2 = (float)mapcos8(spirotheta2 + i * spirooffset, y - spiroradiusy, y + spiroradiusy);
 
 
     //CRGB color = ColorFromPalette( PartyColors_p, (hue + i * spirooffset), 128U); // вообще-то палитра должна постоянно меняться, но до адаптации этого руки уже не дошли
     //CRGB color = ColorFromPalette(*curPalette, hue + i * spirooffset, 128U); // вот так уже прикручена к бегунку Масштаба. за
     //leds[XY(x2, y2)] += color;
     if (x2 < WIDTH && y2 < HEIGHT) // добавил проверки. не знаю, почему эффект подвисает без них
-      leds[XY(x2, y2)] += (CRGB)ColorFromPalette(*curPalette, hue + i * spirooffset);
+      drawPixelXYF(x2, y2, (CRGB)ColorFromPalette(*curPalette, hue + i * spirooffset));
 
     if ((x2 == spirocenterX && y2 == spirocenterY) ||
         (x2 == spirocenterX && y2 == spirocenterY)) change = true;
