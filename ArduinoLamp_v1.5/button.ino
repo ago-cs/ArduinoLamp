@@ -48,9 +48,10 @@ void buttonTick() {
         ONflag = true;
         changePower();
       }
-      if (touch2.isSingle()) {     // если было четырёхкратное нажатие на кнопку, то переключаем демо
+      if (touch2.isTriple()) {     // если было четырёхкратное нажатие на кнопку, то переключаем демо
         isDemo = !isDemo;
         DemTimer = 0UL;
+        delay(1);
       }
 
 
@@ -73,18 +74,18 @@ void buttonTick() {
       if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
       switch (numHold) {
         case 1:
-          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (2 - 1), 1 , 255);
+          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1), 1 , 255);
           break;
         case 2:
-          modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1) * (2 - 1), 1 , 255);
+          modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1), 1 , 255);
           break;
 
         case 3:
-          modes[currentMode].Scale = constrain(modes[currentMode].Scale + (modes[currentMode].Scale / 25 + 1) * (2 - 1), 1 , 255);
+          modes[currentMode].Scale = constrain(modes[currentMode].Scale + (modes[currentMode].Scale / 25 + 1), 1 , 255);
           break;
       }
     }
-        if (touch2.isHolded()) {  // изменение яркости при удержании кнопки
+    if (touch2.isHolded()) {  // изменение яркости при удержании кнопки
      // brightDirection = !brightDirection;
       numHold = 1;
     }
@@ -102,14 +103,14 @@ if (touch2.isStep()) {
       if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
       switch (numHold) {
         case 1:
-          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness - (modes[currentMode].Brightness / 25 + 1) * (2 - 1), 1 , 255);
+          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness - (modes[currentMode].Brightness / 25 + 1), 1 , 255);
           break;
         case 2:
-          modes[currentMode].Speed = constrain(modes[currentMode].Speed - (modes[currentMode].Speed / 25 + 1) * (2 - 1), 1 , 255);
+          modes[currentMode].Speed = constrain(modes[currentMode].Speed - (modes[currentMode].Speed / 25 + 1), 1 , 255);
           break;
 
         case 3:
-          modes[currentMode].Scale = constrain(modes[currentMode].Scale - (modes[currentMode].Scale / 25 + 1) * (2 - 1), 1 , 255);
+          modes[currentMode].Scale = constrain(modes[currentMode].Scale - (modes[currentMode].Scale / 25 + 1), 1 , 255);
           break;
       }
     }
