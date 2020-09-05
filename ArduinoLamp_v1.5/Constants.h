@@ -4,7 +4,7 @@
 #define CURRENT_LIMIT 1000    // лимит по току в миллиамперах, автоматически управляет яркостью (пожалей свой блок питания!) 0 - выключить лимит
 
 #define WIDTH 8              // ширина матрицы
-#define HEIGHT 8             // высота матрицы
+#define HEIGHT 8            // высота матрицы
 
 #define COLOR_ORDER GRB       // порядок цветов на ленте. Если цвет отображается некорректно - меняйте. Начать можно с RGB
 
@@ -19,14 +19,14 @@
 // ============= ДЛЯ РАЗРАБОТЧИКОВ =============
 #define LED_PIN 6             // пин ленты
 #define BTN_PIN 2
-#define BTN_PIN2 3
-#define MODE_AMOUNT 33       //кол-во эффектов
+//#define BTN_PIN2 3
+#define MODE_AMOUNT 32       //кол-во эффектов
 #define NUM_LEDS WIDTH * HEIGHT
 #define SEGMENTS 1// диодов в одном "пикселе" (для создания матрицы из кусков ленты)
 // ------------------- ТИПЫ --------------------
 CRGB leds[NUM_LEDS];
 GButton touch(BTN_PIN, HIGH_PULL, NORM_OPEN); //если сенсорна кнопка LOW_PULL
-GButton touch2(BTN_PIN2, HIGH_PULL, NORM_OPEN);
+//GButton touch2(BTN_PIN2, HIGH_PULL, NORM_OPEN);
 struct {
   byte Brightness = 10;
   byte Speed = 30;

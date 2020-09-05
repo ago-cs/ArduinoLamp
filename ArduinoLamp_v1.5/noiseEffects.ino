@@ -32,8 +32,8 @@ void madnessNoise()
   {
     for (uint8_t j = 0; j < HEIGHT; j++)
     {
-      CRGB thisColor = CHSV(noise[j][i], 255, noise[i][j]);
-      leds[XY(i, j)] = CHSV(noise[j][i], 255, noise[i][j]);
+      
+      drawPixelXY(i, j ,CHSV(noise[j][i], 255, noise[i][j]));
     }
   }
   ihue += 1;
@@ -178,7 +178,7 @@ void smokeNoise()
   fillNoiseLED(1, 0.625, 0.125);
 }
 // ************* СЛУЖЕБНЫЕ *************
-void fillNoiseLED(byte x_dir, byte y_dir, byte z_dir)
+void fillNoiseLED(float x_dir, float y_dir, float z_dir)
 {
   uint8_t dataSmoothing = 0;
   if (speed < 50)

@@ -39,10 +39,8 @@ void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
 {
   blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
 }
-void dimAll(uint8_t value) {
-  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+void dimAll(uint8_t value) { 
     fadeToBlackBy (leds, NUM_LEDS, 255U - value);  //fadeToBlackBy
-  }
 }
 void drawPixelXYF(float x, float y, const CRGB &color)
 {
@@ -340,17 +338,13 @@ void colorRoutine() {
   }*/
 //--------------------------Шторм,Метель-------------------------
 #define e_sns_DENSE (32U) // плотность снега - меньше = плотнее
-void stormRoutine2(bool isColored)
+void stormRoutine()
 {
   // заполняем головами комет
   uint8_t Saturation = 0U;    // цвет хвостов
   uint8_t e_TAIL_STEP = 127U; // длина хвоста
-  if (isColored)
-    Saturation = modes[currentMode].Scale * 2.55;
-  else
-  {
-    e_TAIL_STEP = 255U - modes[currentMode].Scale * 2.55;
-  }
+  e_TAIL_STEP = 255U - modes[currentMode].Scale * 2.55;
+  
   for (int8_t x = 0U; x < WIDTH - 1U; x++) // fix error i != 0U
   {
     if (!random8(e_sns_DENSE) &&
@@ -593,7 +587,7 @@ void WaveRoutine() {
 }
 
 //-------------------------Блуждающий кубик-----------------------
-#define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке
+//А зачем его?//#define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке
 // ------------- эффект "блуждающий кубик" -------------
 
   int8_t ballSize;
@@ -604,8 +598,13 @@ void WaveRoutine() {
 void ballRoutine()
 {
 if (loadingFlag) {
-  ballSize = map(modes[currentMode].Scale, modes[currentMode].Scale <= 127U ? 0U : 128U, modes[currentMode].Scale <= 127U ? 127U : 255U, 2U, max((uint8_t)min(WIDTH,HEIGHT) / 3U, 2U));
-    ballSize = map(modes[currentMode].Scale, modes[currentMode].Scale <= 127U ? 0U : 128U, modes[currentMode].Scale <= 127U ? 127U : 255U, 2U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 2));
+if (modes[currentMode].Scale <= 85) 
+    ballSize = map(modes[currentMode].Scale, 1, 85, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
+  else if (modes[currentMode].Scale > 85 and modes[currentMode].Speed <= 170)
+    ballSize = map(modes[currentMode].Scale, 170, 86, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
+  else
+    ballSize = map(modes[currentMode].Scale, 171, 255, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
+  
   for (uint8_t i = 0U; i < 2U; i++)
   {
     coordB[i] = i? float(WIDTH - ballSize) / 2 : float(HEIGHT - ballSize) / 2;
@@ -639,27 +638,28 @@ if (loadingFlag) {
     {
       coordB[i] = 0;
       vectorB[i] = -vectorB[i];
-      if (RANDOM_COLOR) ballColor = CHSV(random8(1, 255), 220, random8(100, 255));
+      /*if (RANDOM_COLOR)*/ ballColor = CHSV(random8(1, 255), 220, random8(100, 255));
     }
   }
   if ((int8_t)coordB[0U] > (int16_t)(WIDTH - ballSize))
   {
     coordB[0U] = (WIDTH - ballSize);
     vectorB[0U] = -vectorB[0U];
-    if (RANDOM_COLOR) ballColor = CHSV(random8(1, 255), 220, random8(100, 255));
+    /*if (RANDOM_COLOR)*/ ballColor = CHSV(random8(1, 255), 220, random8(100, 255));
   }
   if ((int8_t)coordB[1U] > (int16_t)(HEIGHT - ballSize))
   {
     coordB[1U] = (HEIGHT - ballSize);
     vectorB[1U] = -vectorB[1U];
-    if (RANDOM_COLOR) ballColor = CHSV(random8(1, 255), 220, random8(100, 255));
+    /*if (RANDOM_COLOR)*/ ballColor = CHSV(random8(1, 255), 220, random8(100, 255));
   }
-
-  if (modes[currentMode].Scale <= 127) { // при масштабе до 127 выводим кубик без шлейфа
+if (modes[currentMode].Scale <= 85)  // при масштабе до 85 выводим кубик без шлейфа
     memset8( leds, 0, NUM_LEDS * 3);
-  } else {
+  else if (modes[currentMode].Scale > 85 and modes[currentMode].Scale <= 170)
     fadeToBlackBy(leds, NUM_LEDS, 255 - (uint8_t)(10 * ((float)modes[currentMode].Speed) /255) + 30); // выводим кубик со шлейфом, длинна которого зависит от скорости.
-  }
+  else
+    fadeToBlackBy(leds, NUM_LEDS, 255 - (uint8_t)(10 * ((float)modes[currentMode].Speed) /255) + 15); // выводим кубик с длинным шлейфом, длинна которого зависит от скорости.
+
   for (float i = 0.0f; i < (float)ballSize; i+= 0.25f)
   {
     for (float j = 0.0f; j < (float)ballSize; j+=0.25f)
@@ -668,64 +668,8 @@ if (loadingFlag) {
     }
   }
 }
-/* //-------------------Светлячки со шлейфом----------------------------
-#define BALLS_AMOUNT          (3U)                          // количество "шариков"
-int16_t coord[BALLS_AMOUNT][2U];
-int8_t vector[BALLS_AMOUNT][2U];
-CRGB ballColors[BALLS_AMOUNT];
-void ballsRoutine()
-{
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-
-    for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
-    {
-      int8_t sign;
-      // забиваем случайными данными
-      coord[j][0U] = WIDTH / 2 * 10;
-      random(0, 2) ? sign = 1 : sign = -1;
-      vector[j][0U] = random(4, 15) * sign;
-      coord[j][1U] = HEIGHT / 2 * 10;
-      random(0, 2) ? sign = 1 : sign = -1;
-      vector[j][1U] = random(4, 15) * sign;
-      //ballColors[j] = CHSV(random(0, 9) * 28, 255U, 255U);
-      // цвет зависит от масштаба
-      ballColors[j] = CHSV((modes[currentMode].Scale * (j + 1)) % 256U, 255U, 255U);
-    }
-  }
-  fadeToBlackBy(leds, NUM_LEDS, 255 - (uint8_t)(10 * ((float)modes[currentMode].Speed) /255) + 40);
-
-
-  // движение шариков
-  for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
-  {
-    // движение шариков
-    for (uint8_t i = 0U; i < 2U; i++)
-    {
-      coord[j][i] += vector[j][i];
-      if (coord[j][i] < 0)
-      {
-        coord[j][i] = 0;
-        vector[j][i] = -vector[j][i];
-      }
-    }
-
-    if (coord[j][0U] > (int16_t)((WIDTH - 1) * 10))
-    {
-      coord[j][0U] = (WIDTH - 1) * 10;
-      vector[j][0U] = -vector[j][0U];
-    }
-    if (coord[j][1U] > (int16_t)((HEIGHT - 1) * 10))
-    {
-      coord[j][1U] = (HEIGHT - 1) * 10;
-      vector[j][1U] = -vector[j][1U];
-    }
-    drawPixelXY(coord[j][0U] / 10, coord[j][1U] / 10,ballColors[j]);
-  }
-}*/
 //-------------------Светлячки со шлейфом----------------------------
-#define BALLS_AMOUNT          (3U)                          // количество "шариков"
+#define BALLS_AMOUNT          (3U)                          // макс. количество "шариков"
  float vector[BALLS_AMOUNT][2U];
  float coord[BALLS_AMOUNT][2U];
  int16_t ballColors[BALLS_AMOUNT];
@@ -1341,7 +1285,7 @@ void prismataRoutine()
     }
 }
 // --------------------------- эффект мячики ----------------------
-/*//  BouncingBalls2014 is a program that lets you animate an LED strip
+//  BouncingBalls2014 is a program that lets you animate an LED strip
 //  to look like a group of bouncing balls
 //  Daniel Wilson, 2014
 //  https://github.com/githubcdr/Arduino/blob/master/bouncingballs/bouncingballs.ino
@@ -1416,7 +1360,7 @@ void BBallsRoutine() {
     }
     leds[XY(bballsX[i], bballsPos[i])] = CHSV(bballsCOLOR[i] + deltaHue, hue2, 255U);
   }
-}*/
+}/*
     uint8_t bballsNUM_BALLS; // Number of bouncing balls you want (recommend < 7, but 20 is fun in its own way) ... количество мячиков теперь задаётся бегунком, а не константой
     #define bballsMaxNUM_BALLS            (WIDTH * 2)
     #define bballsGRAVITY           (-9.81)
@@ -1494,7 +1438,7 @@ void BBallsRoutine() {
    drawPixelXYF(bballsX[i], bballsPos[i], CHSV(bballsCOLOR[i], 255, 255));
   }
 }
-
+*/
 void fire2012again()
 {
   if (loadingFlag)
@@ -1853,4 +1797,298 @@ void ColorCometRoutine() {      // <- ******* для оригинальной п
   FillNoise(0);
   MoveFractionalNoiseX(WIDTH / 2U - 1U);
   MoveFractionalNoiseY(HEIGHT / 2U - 1U);
+}
+
+// ------------- светлячки --------------
+#define LIGHTERS_AM           (30U)
+uint16_t lightersIdx;
+ float lightersSpeed[2U][LIGHTERS_AM];
+ uint8_t lightersColor[LIGHTERS_AM];
+ float lightersPos[2U][LIGHTERS_AM];
+ byte light2[LIGHTERS_AM];
+#define LIGHTERS_AM           (30U)
+void lightersRoutine(bool subPix){  if (loadingFlag)
+  {
+    loadingFlag = false;
+  randomSeed(millis());
+  for (uint8_t i = 0U; i < LIGHTERS_AM; i++)
+  {
+    lightersIdx=0;
+    lightersPos[0U][i] = random(0, WIDTH);
+    lightersPos[1U][i] = random(0, HEIGHT);
+    lightersSpeed[0U][i] = (float)random(-200, 200) / 10.0f;
+    lightersSpeed[1U][i] = (float)random(-200, 200) / 10.0f;
+    lightersColor[i] = random(0U, 255U);
+    light2[i] = 127;
+  }
+}
+  float speedfactor = (float)modes[currentMode].Speed / 4096.0f + 0.001f;
+
+ // myLamp.blur2d(speed/10);
+  //myLamp.dimAll(50 + speed/10);
+  memset8( leds, 0, NUM_LEDS * 3); 
+
+  for (uint8_t i = 0U; i < (uint8_t)((LIGHTERS_AM/255.0)*modes[currentMode].Scale)+1; i++) // масштабируем на LIGHTERS_AM, чтобы не было выхода за диапазон
+  {
+    // EVERY_N_SECONDS(1)
+    // {
+    //   LOG.printf_P("S0:%d S1:%d P0:%3.2f P1:%3.2f, scale:%3.2f\n", lightersSpeed[0U][i], lightersSpeed[1U][i],lightersPos[0U][i],lightersPos[1U][i],speedfactor);
+    // }
+
+    EVERY_N_MILLIS(random16(1024))
+    {
+      lightersIdx = (lightersIdx+1)%(uint8_t)(((LIGHTERS_AM/255.0)*modes[currentMode].Scale)+1);
+      lightersSpeed[0U][lightersIdx] += random(-10, 10);
+      lightersSpeed[1U][lightersIdx] += random(-10, 10);
+      lightersSpeed[0U][lightersIdx] = fmod(lightersSpeed[0U][lightersIdx], 21);
+      lightersSpeed[1U][lightersIdx] = fmod(lightersSpeed[1U][lightersIdx], 21);
+    }
+
+    lightersPos[0U][i] += lightersSpeed[0U][i]*speedfactor;
+    lightersPos[1U][i] += lightersSpeed[1U][i]*speedfactor;
+
+    if (lightersPos[0U][i] < 0) lightersPos[0U][i] = (float)(WIDTH - 1);
+    if (lightersPos[0U][i] >= (float)WIDTH) lightersPos[0U][i] = 0.0f;
+
+    if (lightersPos[1U][i] <= 0.0f)
+    {
+      lightersPos[1U][i] = 0.0f;
+      lightersSpeed[1U][i] = -lightersSpeed[1U][i];
+      lightersSpeed[0U][i] = -lightersSpeed[0U][i];
+    }
+    if (lightersPos[1U][i] >= (int32_t)(HEIGHT - 1))
+    {
+      lightersPos[1U][i] = (HEIGHT - 1U);
+      lightersSpeed[1U][i] = -lightersSpeed[1U][i];
+      lightersSpeed[0U][i] = -lightersSpeed[0U][i];
+    }
+
+    EVERY_N_MILLIS(random16(512, 2048)) {
+      if (light2[i] == 127) 
+        light2[i] = 255;
+      else light2[i] = 127;
+    }
+    if (subPix)
+      drawPixelXYF(lightersPos[0U][i], lightersPos[1U][i], CHSV(lightersColor[i], 200U, light[i]));
+    else 
+     drawPixelXY((uint8_t)lightersPos[0U][i], (uint8_t)lightersPos[1U][i], CHSV(lightersColor[i], 200U, light[i]));
+  }
+}
+
+// ------------------------------ ЭФФЕКТ ЗВЁЗДЫ ----------------------
+// (c) SottNick
+// производная от эффекта White Warp
+// https://github.com/marcmerlin/NeoMatrix-FastLED-IR/blob/master/Table_Mark_Estes_Impl.h
+// https://github.com/marcmerlin/FastLED_NeoMatrix_SmartMatrix_LEDMatrix_GFX_Demos/blob/master/LEDMatrix/Table_Mark_Estes/Table_Mark_Estes.ino
+//int16_t pointy, blender = 128;//, laps, hue, steper,  xblender, hhowmany, radius3, xpoffset[MATRIX_WIDTH * 3];
+#define STAR_BLENDER 128U             // хз что это 
+#define CENTER_DRIFT_SPEED 6U         // скорость перемещения плавающего центра возникновения звёзд
+//, ringdelay;//, bringdelay, sumthum;
+//int16_t shifty = 6;//, pattern = 0, poffset;
+float radius2;//, fpeed[WIDTH * 3], fcount[WIDTH * 3], fcountr[WIDTH * 3];//, xxx, yyy, dot = 3, rr, gg, bb, adjunct = 3;
+//uint8_t fcolor[WIDTH * 3];
+   float counter = 0;
+//uint16_t h = 0, howmany;// ccoolloorr, why1, why2, why3, eeks1, eeks2, eeks3, oldpattern, xhowmany, kk;
+float driftx, drifty;//, locusx, locusy, xcen, ycen, yangle, xangle;
+float cangle, sangle;//xfire[WIDTH * 3], yfire[WIDTH * 3], radius, xslope[MATRIX_WIDTH * 3], yslope[MATRIX_WIDTH * 3]; 
+
+//Дополнительная функция построения линий
+void DrawLine(int x1, int y1, int x2, int y2, CRGB color)
+{
+  int tmp;
+  int x,y;
+  int dx, dy;
+  int err;
+  int ystep;
+
+  uint8_t swapxy = 0;
+  
+  if ( x1 > x2 ) dx = x1-x2; else dx = x2-x1;
+  if ( y1 > y2 ) dy = y1-y2; else dy = y2-y1;
+
+  if ( dy > dx ) 
+  {
+    swapxy = 1;
+    tmp = dx; dx =dy; dy = tmp;
+    tmp = x1; x1 =y1; y1 = tmp;
+    tmp = x2; x2 =y2; y2 = tmp;
+  }
+  if ( x1 > x2 ) 
+  {
+    tmp = x1; x1 =x2; x2 = tmp;
+    tmp = y1; y1 =y2; y2 = tmp;
+  }
+  err = dx >> 1;
+  if ( y2 > y1 ) ystep = 1; else ystep = -1;
+  y = y1;
+
+  for( x = x1; x <= x2; x++ )
+  {
+    if ( swapxy == 0 ) drawPixelXY(x, y, color);
+    else drawPixelXY(y, x, color);
+    err -= (uint8_t)dy;
+    if ( err < 0 ) 
+    {
+      y += ystep;
+      err += dx;
+    }
+  }
+}
+
+void drawStar(float xlocl, float ylocl, float biggy, float little, int16_t points, float dangle, uint8_t koler)// random multipoint star
+{
+//  if (counter == 0) { // это, блин, вообще что за хрень была?!
+//    shifty = 3;//move quick 
+//  }
+    radius2 = 255.0 / (float)points;
+  for (int i = 0; i < points; i++)
+  {
+    // две строчки выше - рисуют звезду просто по оттенку, а две строчки ниже - берут цвет из текущей палитры
+    DrawLine(xlocl + ((little * (sin8(i * radius2 + radius2 / 2 - dangle) - 128.0)) / 128), ylocl + ((little * (cos8(i * radius2 + radius2 / 2 - dangle) - 128.0)) / 128), xlocl + ((biggy * (sin8(i * radius2 - dangle) - 128.0)) / 128), ylocl + ((biggy * (cos8(i * radius2 - dangle) - 128.0)) / 128), ColorFromPalette(*curPalette, koler));
+    DrawLine(xlocl + ((little * (sin8(i * radius2 - radius2 / 2 - dangle) - 128.0)) / 128), ylocl + ((little * (cos8(i * radius2 - radius2 / 2 - dangle) - 128.0)) / 128), xlocl + ((biggy * (sin8(i * radius2 - dangle) - 128.0)) / 128), ylocl + ((biggy * (cos8(i * radius2 - dangle) - 128.0)) / 128), ColorFromPalette(*curPalette, koler));
+    }
+}
+
+//uint8_t bballsCOLOR[bballsMaxNUM] ;                   // цвет звезды (используем повторно массив эффекта Мячики)
+//uint8_t bballsX[bballsMaxNUM] ;                       // количество углов в звезде (используем повторно массив эффекта Мячики)
+//int   bballsPos[bballsMaxNUM] ;                       // задержка пуска звезды относительно счётчика (используем повторно массив эффекта Мячики)
+//uint8_t bballsNUM;                                    // количество звёзд (используем повторно переменную эффекта Мячики)
+
+void starRoutine() {
+  //dimAll(255U - modes[currentMode].Scale * 2);
+  dimAll(89U);
+  //dimAll(myScale8(modes[currentMode].Scale));
+
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette();
+
+    driftx = random8(4, WIDTH - 4);//set an initial location for the animation center
+    drifty = random8(4, HEIGHT - 4);// set an initial location for the animation center
+    
+    cangle = (sin8(random(25, 220)) - 128.0) / 128.0;//angle of movement for the center of animation gives a float value between -1 and 1
+    sangle = (sin8(random(25, 220)) - 128.0) / 128.0;//angle of movement for the center of animation in the y direction gives a float value between -1 and 1
+    //shifty = random (3, 12);//how often the drifter moves будет CENTER_DRIFT_SPEED = 6
+
+    //pointy = 7; теперь количество углов у каждой звезды своё
+    bballsNUM = (WIDTH + 6U) / 2U;//(modes[currentMode].Scale - 1U) / 99.0 * (bballsMaxNUM - 1U) + 1U;
+    if (bballsNUM > bballsMaxNUM) bballsNUM = bballsMaxNUM;
+    for (uint8_t num = 0; num < bballsNUM; num++) {
+      bballsX[num] = random8(3, 9);//pointy = random8(3, 9); // количество углов в звезде
+      bballsPos[num] = counter + (num << 2) + 1U;//random8(50);//modes[currentMode].Scale;//random8(50, 99); // задержка следующего пуска звезды
+      bballsCOLOR[num] = random8();
+    }
+
+  }
+
+  
+  //hue++;//increment the color basis был общий оттенок на весь эффект. теперь у каждой звезды свой
+  //h = hue;  //set h to the color basis
+  counter++;
+  if (driftx > (WIDTH - spirocenterX / 2U))//change directin of drift if you get near the right 1/4 of the screen
+    cangle = 0 - fabs(cangle);
+  if (driftx < spirocenterX / 2U)//change directin of drift if you get near the right 1/4 of the screen
+    cangle = fabs(cangle);
+  if ((uint8_t)counter % CENTER_DRIFT_SPEED == 0)
+    driftx = driftx + cangle;//move the x center every so often
+
+  if (drifty > ( HEIGHT - spirocenterY / 2U))// if y gets too big, reverse
+    sangle = 0 - fabs(sangle);
+  if (drifty < spirocenterY / 2U) // if y gets too small reverse
+    sangle = fabs(sangle);
+  if (((uint8_t)counter + CENTER_DRIFT_SPEED / 2U) % CENTER_DRIFT_SPEED == 0)
+    drifty =  drifty + sangle;//move the y center every so often
+  
+  //по идее, не нужно равнять диапазоны плавающего центра. за них и так вылет невозможен
+  //driftx = constrain(driftx, spirocenterX - spirocenterX / 3, spirocenterX + spirocenterX / 3);//constrain the center, probably never gets evoked any more but was useful at one time to keep the graphics on the screen....
+  //drifty = constrain(drifty, spirocenterY - spirocenterY / 3, spirocenterY + spirocenterY / 3);
+
+  for (uint8_t num = 0; num < bballsNUM; num++) {
+    if (counter >= bballsPos[num])//(counter >= ringdelay)
+    {
+      if (counter - bballsPos[num] <= WIDTH + 5U) {  //(counter - ringdelay <= WIDTH + 5){
+        //drawstar(driftx  , drifty, 2 * (counter - ringdelay), (counter - ringdelay), pointy, blender + h, h * 2 + 85);
+        drawStar(driftx  , drifty, 2 * (counter - bballsPos[num]), (counter - bballsPos[num]), bballsX[num], STAR_BLENDER + bballsCOLOR[num], bballsCOLOR[num] * 2);//, h * 2 + 85);// что, бл, за 85?!
+        bballsCOLOR[num]++;
+      }
+      else
+        //bballsX[num] = random8(3, 9);//pointy = random8(3, 9); // количество углов в звезде
+        bballsPos[num] = counter + (bballsNUM << 1) + 1U;//random8(50, 99);//modes[currentMode].Scale;//random8(50, 99); // задержка следующего пуска звезды
+    }
+  }
+}
+
+// ------- Эффект "Звезды"
+    #define STARS_NUM (16)
+    uint8_t stars_count;
+    float color[STARS_NUM] ;                        // цвет звезды
+    uint8_t points[STARS_NUM] ;                       // количество углов в звезде
+    unsigned int delays[STARS_NUM] ;                   // задержка пуска звезды относительно счётчика
+
+   
+    uint8_t csum = 0;
+  
+void StarRoutine(){
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette();
+  counter = 0.0;
+  // driftx = random8(, WIDTH - 4);//set an initial location for the animation center
+  // drifty = random8(4, HEIGHT - 4);// set an initial location for the animation center
+  
+  // стартуем с центра, раз это единственная причина перезапуска по масштабу :)
+  driftx = (float)WIDTH/2.0;
+  drifty = (float)HEIGHT/2.0;
+  
+  cangle = (float)(sin8(random8(25, 220)) - 128.0f) / 128.0f;//angle of movement for the center of animation gives a float value between -1 and 1
+  sangle = (float)(sin8(random8(25, 220)) - 128.0f) / 128.0f;//angle of movement for the center of animation in the y direction gives a float value between -1 and 1
+  //shifty = random (3, 12);//how often the drifter moves будет CENTER_DRIFT_SPEED = 6
+
+  stars_count = WIDTH / 2U;
+  if (stars_count > STARS_NUM) stars_count = STARS_NUM;
+  for (uint8_t num = 0; num < stars_count; num++) {
+    points[num] = random8(3, 9); // количество углов в звезде
+    delays[num] = (float)modes[currentMode].Speed / 5 + (num << 2) + 1U; // задержка следующего пуска звезды
+    color[num] = random8();
+  }
+}
+
+
+
+  fadeToBlackBy(leds, NUM_LEDS, 165);
+  //blur2d(30U);
+
+
+  float _scalefactor = ((float)modes[currentMode].Speed/380.0+0.05);
+
+  counter+=_scalefactor; // определяет то, с какой скоростью будет приближаться звезда
+
+  if (driftx > (WIDTH - spirocenterX / 2U))//change directin of drift if you get near the right 1/4 of the screen
+    cangle = 0 - fabs(cangle);
+  if (driftx < spirocenterX / 2U)//change directin of drift if you get near the right 1/4 of the screen
+    cangle = fabs(cangle);
+  if ((uint16_t)counter % CENTER_DRIFT_SPEED == 0)
+    driftx = driftx + (cangle * _scalefactor);//move the x center every so often
+
+  if (drifty > ( HEIGHT - spirocenterY / 2U))// if y gets too big, reverse
+    sangle = 0 - fabs(sangle);
+  if (drifty < spirocenterY / 2U) // if y gets too small reverse
+    sangle = fabs(sangle);
+  //if ((counter + CENTER_DRIFT_SPEED / 2U) % CENTER_DRIFT_SPEED == 0)
+  if ((uint16_t)counter % CENTER_DRIFT_SPEED == 0)
+    drifty =  drifty + (sangle * _scalefactor);//move the y center every so often
+
+  for (uint8_t num = 0; num < stars_count; num++) {
+    if (counter >= delays[num])//(counter >= ringdelay)
+    {
+      if (counter - delays[num] <= WIDTH + 5) { 
+        drawStar(driftx, drifty, 2 * (counter - delays[num]), (counter - delays[num]), points[num], STAR_BLENDER + color[num], color[num]);
+        color[num]+=_scalefactor; // в зависимости от знака - направление вращения
+      }
+      else
+        delays[num] = counter + (stars_count << 1) + 1U;//random8(50, 99);//modes[currentMode].Scale;//random8(50, 99); // задержка следующего пуска звезды
+    }
+  }
 }
