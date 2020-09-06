@@ -1954,7 +1954,7 @@ void drawStar(float xlocl, float ylocl, float biggy, float little, int16_t point
 //int   bballsPos[bballsMaxNUM] ;                       // задержка пуска звезды относительно счётчика (используем повторно массив эффекта Мячики)
 //uint8_t bballsNUM;                                    // количество звёзд (используем повторно переменную эффекта Мячики)
 
-void starRoutine() {
+/*void starRoutine() {
   //dimAll(255U - modes[currentMode].Scale * 2);
   dimAll(89U);
   //dimAll(myScale8(modes[currentMode].Scale));
@@ -2018,7 +2018,7 @@ void starRoutine() {
     }
   }
 }
-
+*/
 // ------- Эффект "Звезды"
     #define STARS_NUM (16)
     uint8_t stars_count;
@@ -2090,5 +2090,68 @@ void StarRoutine(){
       else
         delays[num] = counter + (stars_count << 1) + 1U;//random8(50, 99);//modes[currentMode].Scale;//random8(50, 99); // задержка следующего пуска звезды
     }
+  }
+}
+
+byte sdirection;
+uint8_t _x;
+uint8_t _y;
+void snakeRoutine(){
+   if (loadingFlag)
+  {_x=random(WIDTH);
+  _y=random(HEIGHT);
+    loadingFlag = false;
+    sdirection = 1;}
+if (sdirection = 0){
+  if(_x >= WIDTH) _x = 0; else _x++;}
+  else if (sdirection = 1){
+  if(_x <= 0) _x = WIDTH; else _x-1;}
+  else if (sdirection = 2){
+  if(_y >= HEIGHT) _x = 0; else _y++;}
+  else if (sdirection = 3){
+  if(_y <= 0) _x = HEIGHT; else _y-1;}
+drawPixelXY(_x,_y,CHSV(255,255,255));dimAll(25);
+}
+
+// ---- Эффект "Тени" 
+// https://github.com/vvip-68/GyverPanelWiFi/blob/master/firmware/GyverPanelWiFi_v1.02/effects.ino
+    uint16_t sPseudotime = 0;
+    uint16_t sLastMillis = 0;
+    uint16_t sHue16 = 0;
+void shadowsRoutine() {
+  
+  uint8_t sat8 = beatsin88( 87, 220, 250);
+  uint8_t brightdepth = beatsin88( 341, 96, 224);
+  uint16_t brightnessthetainc16 = beatsin88( 203, (25 * 225), (40 * 256));
+  uint8_t msmultiplier = beatsin88(map(modes[currentMode].Speed, 1, 255, 100, 255), 32, map(modes[currentMode].Speed, 1, 255, 60, 255)); // beatsin88(147, 32, 60);
+  byte effectBrightness = modes[currentMode].Scale;
+  uint16_t hue16 = sHue16;//gHue * 256;
+  uint16_t hueinc16 = beatsin88(113, 1, 3000);
+  
+  uint16_t ms = millis();
+  uint16_t deltams = ms - sLastMillis ;
+
+  sLastMillis  = ms;
+  sPseudotime += deltams * msmultiplier;
+  sHue16 += deltams * beatsin88( 400, 5,9);
+  uint16_t brightnesstheta16 = sPseudotime;
+
+  for( uint16_t i = 0 ; i < NUM_LEDS; i++) {
+    hue16 += hueinc16;
+    uint8_t hue8 = hue16 / 256;
+
+    brightnesstheta16  += brightnessthetainc16;
+    uint16_t b16 = sin16( brightnesstheta16  ) + 32768U;
+
+    uint32_t bri16 = (uint32_t)((uint32_t)b16 * (uint32_t)b16) / 65536U;
+    uint8_t bri8 = (uint32_t)(((uint32_t)bri16) * brightdepth) / 65536U;
+    bri8 += (255 - brightdepth);
+    
+    CRGB newcolor = CHSV( hue8, sat8, map8(bri8, map(effectBrightness, 1, 255, 32, 125), map(effectBrightness, 1, 255, 125, 250))); 
+    
+    uint16_t pixelnumber = i;
+    pixelnumber = (NUM_LEDS-1) - pixelnumber;
+    
+    nblend( leds[pixelnumber], newcolor, 64);
   }
 }

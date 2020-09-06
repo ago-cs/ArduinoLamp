@@ -11,7 +11,7 @@ void effectsTick() {
         case 3 : rainbowHorizontal();           break;
         case 4 : rainbowDiagonalRoutine();      break;
         case 5 : WaveRoutine();                 break;
-        case 6 : StarRoutine();                 break;
+        case 6 : shadowsRoutine();              break;
         case 7 : BBallsRoutine();               break; 
         case 8 : ballRoutine();                 break;
         case 9 : ballsRoutine();                break;
@@ -49,10 +49,10 @@ void effectsTick() {
           }
           break;
         case 2:
-          ind = sqrt(modes[currentMode].Speed + 1);
+          ind = sqrt(modes[currentMode].Speed - 1);
           for (byte y = 0; y <= HEIGHT ; y++) {
             if (ind <= y) drawPixelXY(y, 0, CHSV(100, 255, 255));
-            else drawPixelXY(y, 0,  0);
+            else drawPixelXY(7 - y, 0,  0);
           }
           break;
         case 3:
