@@ -29,11 +29,7 @@ const TProgmemRGBPalette16 *palette_arr[] = {
   &RainbowColors_p,
   &RainbowStripeColors_p
 };
-const TProgmemRGBPalette16 *curPalette = palette_arr[0];
-void setCurrentPalette() {
-  if (modes[currentMode].Scale > 100U) modes[currentMode].Scale = 100U; // чтобы не было проблем при прошивке без очистки памяти
-  curPalette = palette_arr[(uint8_t)(modes[currentMode].Scale / 100.0F * ((sizeof(palette_arr) / sizeof(TProgmemRGBPalette16 *)) - 0.01F))];
-}
+
 // --------------------------------- конфетти ------------------------------------
 #define FADE_OUT_SPEED        (70U)                         // скорость затухания
 void sparklesRoutine()
@@ -44,7 +40,7 @@ void sparklesRoutine()
     uint8_t y = random(0U, HEIGHT);
     if (getPixColorXY(x, y) == 0U)
     {
-      leds[XY(x, y)] = CHSV(random(0U, 255U), 255U, 255U);
+      drawPixelXY(x, y,CHSV(random(0U, 255U), 255U, 255U));
     }
   }
   fader(FADE_OUT_SPEED);
@@ -297,17 +293,13 @@ void whiteLamp() {
 }
 //--------------------------Шторм,Метель-------------------------
 #define e_sns_DENSE (32U) // плотность снега - меньше = плотнее
-void stormRoutine2(bool isColored)
+#define e_TAIL_STEP (127U) // длина хвоста
+void stormRoutine()
 {
   // заполняем головами комет
   uint8_t Saturation = 0U;    // цвет хвостов
-  uint8_t e_TAIL_STEP = 127U; // длина хвоста
-  if (isColored)
+
     Saturation = modes[currentMode].Scale * 2.55;
-  else
-  {
-    e_TAIL_STEP = 255U - modes[currentMode].Scale * 2.55;
-  }
   for (int8_t x = 0U; x < WIDTH - 1U; x++) // fix error i != 0U
   {
     if (!random8(e_sns_DENSE) &&
@@ -335,7 +327,7 @@ void stormRoutine2(bool isColored)
   }
 }
 //-------------------------Блуждающий кубик-----------------------
-#define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке
+//#define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке//Зачем?
 int16_t coordB[2U];
 int8_t vectorB[2U];
 CRGB ballColor;
@@ -377,7 +369,7 @@ void ballRoutine()
     {
       coordB[i] = 0;
       vectorB[i] = -vectorB[i];
-      if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U); // if (RANDOM_COLOR && (modes[currentMode].Scale & 0x01))
+      /*if (RANDOM_COLOR)*/ ballColor = CHSV(random(0, 9) * 28, 255U, 255U); // if (RANDOM_COLOR && (modes[currentMode].Scale & 0x01))
       //vectorB[i] += random(0, 6) - 3;
     }
   }
@@ -385,14 +377,14 @@ void ballRoutine()
   {
     coordB[0U] = (WIDTH - deltaValue) * 10;
     vectorB[0U] = -vectorB[0U];
-    if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+    /*if (RANDOM_COLOR)*/ ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
     //vectorB[0] += random(0, 6) - 3;
   }
   if (coordB[1U] > (int16_t)((HEIGHT - deltaValue) * 10))
   {
     coordB[1U] = (HEIGHT - deltaValue) * 10;
     vectorB[1U] = -vectorB[1U];
-    if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+    /*if (RANDOM_COLOR)*/ ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
     //vectorB[1] += random(0, 6) - 3;
   }
   
@@ -482,11 +474,10 @@ byte generation = 0;
 void MunchRoutine() { if (loadingFlag)
   {
     loadingFlag = false;
-      setCurrentPalette();
   }
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT; y++) {
-      leds[XY(x, y)] = (x ^ y ^ flip) < count ? ColorFromPalette(*curPalette, ((x ^ y) << 4) + generation) : CRGB::Black;
+      drawPixelXY(x, y,(x ^ y ^ flip) < count ? ColorFromPalette(PartyColors_p, ((x ^ y) << 4) + generation) : CRGB::Black);
     }
   }
 
@@ -504,4 +495,47 @@ void MunchRoutine() { if (loadingFlag)
   }
 
   generation++;
+}
+
+// ---- Эффект "Тени" 
+// https://github.com/vvip-68/GyverPanelWiFi/blob/master/firmware/GyverPanelWiFi_v1.02/effects.ino
+    uint16_t sPseudotime = 0;
+    uint16_t sLastMillis = 0;
+    uint16_t sHue16 = 0;
+void shadowsRoutine() {
+  
+  uint8_t sat8 = beatsin88( 87, 220, 250);
+  uint8_t brightdepth = beatsin88( 341, 96, 224);
+  uint16_t brightnessthetainc16 = beatsin88( 203, (25 * 225), (40 * 256));
+  uint8_t msmultiplier = beatsin88(map(modes[currentMode].Speed, 1, 255, 100, 255), 32, map(modes[currentMode].Speed, 1, 255, 60, 255)); // beatsin88(147, 32, 60);
+  byte effectBrightness = modes[currentMode].Scale;
+  uint16_t hue16 = sHue16;//gHue * 256;
+  uint16_t hueinc16 = beatsin88(113, 1, 3000);
+  
+  uint16_t ms = millis();
+  uint16_t deltams = ms - sLastMillis ;
+
+  sLastMillis  = ms;
+  sPseudotime += deltams * msmultiplier;
+  sHue16 += deltams * beatsin88( 400, 5,9);
+  uint16_t brightnesstheta16 = sPseudotime;
+
+  for( uint16_t i = 0 ; i < NUM_LEDS; i++) {
+    hue16 += hueinc16;
+    uint8_t hue8 = hue16 / 256;
+
+    brightnesstheta16  += brightnessthetainc16;
+    uint16_t b16 = sin16( brightnesstheta16  ) + 32768U;
+
+    uint32_t bri16 = (uint32_t)((uint32_t)b16 * (uint32_t)b16) / 65536U;
+    uint8_t bri8 = (uint32_t)(((uint32_t)bri16) * brightdepth) / 65536U;
+    bri8 += (255 - brightdepth);
+    
+    CRGB newcolor = CHSV( hue8, sat8, map8(bri8, map(effectBrightness, 1, 255, 32, 125), map(effectBrightness, 1, 255, 125, 250))); 
+    
+    uint16_t pixelnumber = i;
+    pixelnumber = (NUM_LEDS-1) - pixelnumber;
+    
+    nblend( leds[pixelnumber], newcolor, 64);
+  }
 }
