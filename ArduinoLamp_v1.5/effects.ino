@@ -61,33 +61,27 @@ void drawPixelXYF(float x, float y, const CRGB &color)
   }
 }
 
-void drawCircleF(float x0, float y0, float radius, CRGB color){
-  float x = 0, y = radius, error = 0;
-  float delta = 1 - 2 * radius;
-
-  while (y >= 0) {
-    drawPixelXYF(x0 + x, y0 + y, color);
-    drawPixelXYF(x0 + x, y0 - y, color);
-    drawPixelXYF(x0 - x, y0 + y, color);
-    drawPixelXYF(x0 - x, y0 - y, color);
-    error = 2 * (delta + y) - 1;
-    if (delta < 0 && error <= 0) {
-      ++x;
-      delta += 2 * x + 1;
-      continue;
+void shiftDown(){
+  for (byte x = 0; x < WIDTH; x++) {
+    for (byte y = 0; y < HEIGHT - 1; y++) {
+      drawPixelXY(x, y, getPixColorXY(x, y + 1));
+    }}}
+void shiftUp() {
+  for (byte x = 0; x < WIDTH; x++) {
+    for (byte y = HEIGHT; y > 0; y--) {
+      drawPixelXY(x, y,getPixColorXY(x, y - 1));
     }
-    error = 2 * (delta - x) - 1;
-    if (delta > 0 && error > 0) {
-      --y;
-      delta += 1 - 2 * y;
-      continue;
-    }
-    ++x;
-    delta += 2 * (x - y);
-    --y;
   }
+}   
+void shiftDiag(){
+  for (int8_t y = 0U; y < HEIGHT - 1U; y++)
+  {
+    for (int8_t x = 0; x < WIDTH; x++)
+    {
+      drawPixelXY(wrapX(x + 1U), y, getPixColorXY(x, y + 1U));
+    }
+  }     
 }
-
 // --------------------------------- конфетти ------------------------------------
 void sparklesRoutine()
 {
@@ -101,6 +95,17 @@ void sparklesRoutine()
     }
   }
   dimAll(175);
+}
+// функция плавного угасания цвета для всех пикселей
+void fader(uint8_t step)
+{
+  for (uint8_t i = 0U; i < WIDTH; i++)
+  {
+    for (uint8_t j = 0U; j < HEIGHT; j++)
+    {
+      fadePixel(i, j, step);
+    }
+  }
 }
 void fadePixel(uint8_t i, uint8_t j, uint8_t step)          // новый фейдер
 {
@@ -151,7 +156,7 @@ void fireRoutine() {
     generateLine();
   }
   if (pcnt >= 100) {
-    shiftUp();
+    shiftup();
     generateLine();
     pcnt = 0;
   }
@@ -167,7 +172,7 @@ void generateLine() {
   }
 }
 
-void shiftUp() {
+void shiftup() {
   for (uint8_t y = HEIGHT - 1; y > 0; y--) {
     for (uint8_t x = 0; x < WIDTH; x++) {
       uint8_t newX = x;
@@ -282,12 +287,12 @@ void colorsRoutine() {
 // --------------------------------- ЦВЕТ ------------------------------------
 void colorRoutine() {
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV(modes[currentMode].Scale * 2.5, modes[currentMode].Speed * 2.5, 255);
+    leds[i] = CHSV(modes[currentMode].Scale * 2.5, modes[currentMode].Speed, 255);
   }
 }
 
 // ------------------------------ снегопад 2.0 --------------------------------
-/*void snowRoutine() {
+void snowRoutine() {
   // сдвигаем всё вниз
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT - 1; y++) {
@@ -304,9 +309,9 @@ void colorRoutine() {
       drawPixelXY(x, HEIGHT - 1, 0x000000);
   }
   }
-*/
+
 // ------------------------------ МАТРИЦА ------------------------------
-/*void matrixRoutine() {
+void matrixRoutine() {
   for (byte x = 0; x < WIDTH; x++) {
     // заполняем случайно верхнюю строку
     uint32_t thisColor = getPixColorXY(x, HEIGHT - 1);
@@ -318,16 +323,11 @@ void colorRoutine() {
       drawPixelXY(x, HEIGHT - 1, thisColor - 0x002000);
   }
 
-  // сдвигаем всё вниз
-  for (byte x = 0; x < WIDTH; x++) {
-    for (byte y = 0; y < HEIGHT - 1; y++) {
-      drawPixelXY(x, y, getPixColorXY(x, y + 1));
-    }
+ shiftDown();
   }
-  }
-*/
+
 // ------------------------------ БЕЛАЯ ЛАМПА ------------------------------
-/*void whiteLamp() {
+void whiteLamp() {
   for (byte y = 0; y < (HEIGHT / 2); y++) {
     CHSV color = CHSV(100, 1, constrain(modes[currentMode].Brightness - (long)modes[currentMode].Speed * modes[currentMode].Brightness / 255 * y / 2, 1, 255));
     for (byte x = 0; x < WIDTH; x++) {
@@ -335,16 +335,15 @@ void colorRoutine() {
       drawPixelXY(x, 7 - y, color);
     }
   }
-  }*/
+  }
 //--------------------------Шторм,Метель-------------------------
 #define e_sns_DENSE (32U) // плотность снега - меньше = плотнее
+#define e_TAIL_STEP (127U) // длина хвоста
 void stormRoutine()
 {
   // заполняем головами комет
   uint8_t Saturation = 0U;    // цвет хвостов
-  uint8_t e_TAIL_STEP = 127U; // длина хвоста
-  e_TAIL_STEP = 255U - modes[currentMode].Scale * 2.55;
-  
+  Saturation = modes[currentMode].Scale * 2.55;
   for (int8_t x = 0U; x < WIDTH - 1U; x++) // fix error i != 0U
   {
     if (!random8(e_sns_DENSE) &&
@@ -356,14 +355,7 @@ void stormRoutine()
     }
   }
 
-  // сдвигаем по диагонали
-  for (int8_t y = 0U; y < HEIGHT - 1U; y++)
-  {
-    for (int8_t x = 0; x < WIDTH; x++)
-    {
-      drawPixelXY(wrapX(x + 1U), y, getPixColorXY(x, y + 1U));
-    }
-  }
+  shiftDiag();
 
   // уменьшаем яркость верхней линии, формируем "хвосты"
   for (int8_t i = 0U; i < WIDTH; i++)
@@ -981,14 +973,7 @@ void RainRoutine()
     else
       leds[XY(x, HEIGHT - 1U)] -= CHSV(0, 0, random(96, 128));
   }
-  // сдвигаем всё вниз
-  for (uint8_t x = 0U; x < WIDTH; x++)
-  {
-    for (uint8_t y = 0U; y < HEIGHT - 1U; y++)
-    {
-      drawPixelXY(x, y, getPixColorXY(x, y + 1U));
-    }
-  }
+shiftDown();
 }
 // --------------------------- эффект спирали ----------------------
 /*
@@ -1001,19 +986,18 @@ float spirotheta1 = 0;
 float spirotheta2 = 0;
 //    byte spirohueoffset = 0; // будем использовать переменную сдвига оттенка hue из эффектов Радуга
 
+const uint8_t spiroradiusx = WIDTH / 4;
+const uint8_t spiroradiusy = HEIGHT / 4;
 
-const float spiroradiusx = WIDTH / 4;
-const float spiroradiusy = HEIGHT / 4;
+const uint8_t spirocenterX = WIDTH / 2;
+const uint8_t spirocenterY = HEIGHT / 2;
 
-const float spirocenterX = WIDTH / 2-1;
-const float spirocenterY = HEIGHT / 2-1;
+const uint8_t spirominx = spirocenterX - spiroradiusx;
+const uint8_t spiromaxx = spirocenterX + spiroradiusx + 1;
+const uint8_t spirominy = spirocenterY - spiroradiusy;
+const uint8_t spiromaxy = spirocenterY + spiroradiusy + 1;
 
-const float spirominx = spirocenterX - spiroradiusx;
-const float spiromaxx = spirocenterX + spiroradiusx + 1;
-const float spirominy = spirocenterY - spiroradiusy;
-const float spiromaxy = spirocenterY + spiroradiusy + 1;
-
-float spirocount = 1;
+  uint8_t spirocount = 1;
 float spirooffset = 256 / spirocount;
 boolean spiroincrement = false;
 
@@ -1069,7 +1053,7 @@ void spiroRoutine() {
     //CRGB color = ColorFromPalette(*curPalette, hue + i * spirooffset, 128U); // вот так уже прикручена к бегунку Масштаба. за
     //leds[XY(x2, y2)] += color;
     if (x2 < WIDTH && y2 < HEIGHT) // добавил проверки. не знаю, почему эффект подвисает без них
-      drawPixelXYF(x2, y2, (CRGB)ColorFromPalette(*curPalette, hue + i * spirooffset));
+      drawPixelXY(x2, y2, (CRGB)ColorFromPalette(*curPalette, hue + i * spirooffset));
 
     if ((x2 == spirocenterX && y2 == spirocenterY) ||
         (x2 == spirocenterX && y2 == spirocenterY)) change = true;
@@ -1137,8 +1121,8 @@ void radarRoutine() {
 }
 
 //-----------------Эффект Вышиванка-------------
-byte count = 0;
-byte dir = 1;
+byte mcount = 0;
+byte direct = 1;
 byte flip = 0;
 byte generation = 0;
 void MunchRoutine() {
@@ -1149,17 +1133,17 @@ void MunchRoutine() {
   }
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT; y++) {
-      leds[XY(x, y)] = (x ^ y ^ flip) < count ? ColorFromPalette(*curPalette, ((x ^ y) << 4) + generation) : CRGB::Black;
+      leds[XY(x, y)] = (x ^ y ^ flip) < mcount ? ColorFromPalette(*curPalette, ((x ^ y) << 4) + generation) : CRGB::Black;
     }
   }
 
-  count += dir;
+  mcount += direct;
 
-  if (count <= 0 || count >= WIDTH) {
-    dir = -dir;
+  if (mcount <= 0 || mcount >= WIDTH) {
+    direct = -direct;
   }
 
-  if (count <= 0) {
+  if (mcount <= 0) {
     if (flip == 0)
       flip = 7;
     else
@@ -1451,46 +1435,43 @@ void fire2012again()
 #else
   #define FIRE_BASE HEIGHT/6+1
 #endif
-  // COOLING: How much does the air cool as it rises?
-  // Less cooling = taller flames.  More cooling = shorter flames.
   uint8_t cooling = 70;
-  // SPARKING: What chance (out of 255) is there that a new spark will be lit?
-  // Higher chance = more roaring fire.  Lower chance = more flickery fire.
   uint8_t sparking = 130;
-  // SMOOTHING; How much blending should be done between frames
-  // Lower = more blending and smoother flames. Higher = less blending and flickery flames
-  const uint8_t fireSmoothing = 80;
+  const uint8_t fireSmoothing = 90;
   // Add entropy to random number generator; we use a lot of it.
   random16_add_entropy(random(256));
 
-  // Loop for each column individually
-  for (uint8_t x = 0; x < WIDTH; x++) {
+    // Loop for each column individually
+  for (uint8_t x = 0; x < WIDTH; x++)
+  {
     // Step 1.  Cool down every cell a little
-    for (uint8_t i = 0; i < HEIGHT; i++) {
+    for (uint8_t i = 0; i < HEIGHT; i++)
+    {
       noise3d[0][x][i] = qsub8(noise3d[0][x][i], random(0, ((cooling * 10) / HEIGHT) + 2));
     }
 
     // Step 2.  Heat from each cell drifts 'up' and diffuses a little
-    for (uint8_t k = HEIGHT; k > 1; k--) {
+    for (uint8_t k = HEIGHT; k > 1; k--)
+    {
       noise3d[0][x][wrapY(k)] = (noise3d[0][x][k - 1] + noise3d[0][x][wrapY(k - 2)] + noise3d[0][x][wrapY(k - 2)]) / 3;
     }
 
     // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
-    if (random8() < sparking) {
-      uint8_t j = random8(FIRE_BASE);
+    if (random8() < sparking)
+    {
+      int j = random(FIRE_BASE);
       noise3d[0][x][j] = qadd8(noise3d[0][x][j], random(160, 255));
     }
 
     // Step 4.  Map from heat cells to LED colors
-    // Blend new data with previous frame. Average data between neighbouring pixels
     for (uint8_t y = 0; y < HEIGHT; y++)
-       if (modes[currentMode].Scale >= 100)
-      nblend(leds[XY(x,y)], ColorFromPalette(HeatColors_p, ((noise3d[0][x][y]*0.7) + (noise3d[0][wrapX(x+1)][y]*0.3))), fireSmoothing);
+    {if(modes[currentMode].Scale >= 100)
+      // Blend new data with previous frame. Average data between neighbouring pixels
+        nblend(leds[XY(x,y)], ColorFromPalette(HeatColors_p, ((noise3d[0][x][y] * 0.7) + (noise3d[0][wrapX(x + 1)][y] * 0.3))), fireSmoothing);
     else 
-     nblend(leds[XY(x,y)], ColorFromPalette(CRGBPalette16( CRGB::Black, CHSV(modes[currentMode].Scale * 2.57, 255U, 255U) , CHSV(modes[currentMode].Scale * 2.57, 128U, 255U) , CRGB::White), ((noise3d[0][x][y]*0.7) + (noise3d[0][wrapX(x+1)][y]*0.3))), fireSmoothing);
+    nblend(leds[XY(x,y)], ColorFromPalette(CRGBPalette16( CRGB::Black, CHSV(modes[currentMode].Scale * 2.57, 255U, 255U) , CHSV(modes[currentMode].Scale * 2.57, 128U, 255U) , CRGB::White), ((noise3d[0][x][y]*0.7) + (noise3d[0][wrapX(x+1)][y]*0.3))), fireSmoothing);}
   }
 }
-
 
 // --------------------------- эффект кометы ----------------------
 
@@ -1880,7 +1861,7 @@ void lightersRoutine(bool subPix){  if (loadingFlag)
 // производная от эффекта White Warp
 // https://github.com/marcmerlin/NeoMatrix-FastLED-IR/blob/master/Table_Mark_Estes_Impl.h
 // https://github.com/marcmerlin/FastLED_NeoMatrix_SmartMatrix_LEDMatrix_GFX_Demos/blob/master/LEDMatrix/Table_Mark_Estes/Table_Mark_Estes.ino
-//int16_t pointy, blender = 128;//, laps, hue, steper,  xblender, hhowmany, radius3, xpoffset[MATRIX_WIDTH * 3];
+//int16_t pointy, blender = 128;//, laps, hue, steper,  xblender, hhowmany, radius3, xpoffset[WIDTH * 3];
 #define STAR_BLENDER 128U             // хз что это 
 #define CENTER_DRIFT_SPEED 6U         // скорость перемещения плавающего центра возникновения звёзд
 //, ringdelay;//, bringdelay, sumthum;
@@ -1890,7 +1871,7 @@ float radius2;//, fpeed[WIDTH * 3], fcount[WIDTH * 3], fcountr[WIDTH * 3];//, xx
    float counter = 0;
 //uint16_t h = 0, howmany;// ccoolloorr, why1, why2, why3, eeks1, eeks2, eeks3, oldpattern, xhowmany, kk;
 float driftx, drifty;//, locusx, locusy, xcen, ycen, yangle, xangle;
-float cangle, sangle;//xfire[WIDTH * 3], yfire[WIDTH * 3], radius, xslope[MATRIX_WIDTH * 3], yslope[MATRIX_WIDTH * 3]; 
+float cangle, sangle;//xfire[WIDTH * 3], yfire[WIDTH * 3], radius, xslope[WIDTH * 3], yslope[WIDTH * 3]; 
 
 //Дополнительная функция построения линий
 void DrawLine(int x1, int y1, int x2, int y2, CRGB color)
@@ -1948,78 +1929,6 @@ void drawStar(float xlocl, float ylocl, float biggy, float little, int16_t point
     DrawLine(xlocl + ((little * (sin8(i * radius2 - radius2 / 2 - dangle) - 128.0)) / 128), ylocl + ((little * (cos8(i * radius2 - radius2 / 2 - dangle) - 128.0)) / 128), xlocl + ((biggy * (sin8(i * radius2 - dangle) - 128.0)) / 128), ylocl + ((biggy * (cos8(i * radius2 - dangle) - 128.0)) / 128), ColorFromPalette(*curPalette, koler));
     }
 }
-
-//uint8_t bballsCOLOR[bballsMaxNUM] ;                   // цвет звезды (используем повторно массив эффекта Мячики)
-//uint8_t bballsX[bballsMaxNUM] ;                       // количество углов в звезде (используем повторно массив эффекта Мячики)
-//int   bballsPos[bballsMaxNUM] ;                       // задержка пуска звезды относительно счётчика (используем повторно массив эффекта Мячики)
-//uint8_t bballsNUM;                                    // количество звёзд (используем повторно переменную эффекта Мячики)
-
-/*void starRoutine() {
-  //dimAll(255U - modes[currentMode].Scale * 2);
-  dimAll(89U);
-  //dimAll(myScale8(modes[currentMode].Scale));
-
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    setCurrentPalette();
-
-    driftx = random8(4, WIDTH - 4);//set an initial location for the animation center
-    drifty = random8(4, HEIGHT - 4);// set an initial location for the animation center
-    
-    cangle = (sin8(random(25, 220)) - 128.0) / 128.0;//angle of movement for the center of animation gives a float value between -1 and 1
-    sangle = (sin8(random(25, 220)) - 128.0) / 128.0;//angle of movement for the center of animation in the y direction gives a float value between -1 and 1
-    //shifty = random (3, 12);//how often the drifter moves будет CENTER_DRIFT_SPEED = 6
-
-    //pointy = 7; теперь количество углов у каждой звезды своё
-    bballsNUM = (WIDTH + 6U) / 2U;//(modes[currentMode].Scale - 1U) / 99.0 * (bballsMaxNUM - 1U) + 1U;
-    if (bballsNUM > bballsMaxNUM) bballsNUM = bballsMaxNUM;
-    for (uint8_t num = 0; num < bballsNUM; num++) {
-      bballsX[num] = random8(3, 9);//pointy = random8(3, 9); // количество углов в звезде
-      bballsPos[num] = counter + (num << 2) + 1U;//random8(50);//modes[currentMode].Scale;//random8(50, 99); // задержка следующего пуска звезды
-      bballsCOLOR[num] = random8();
-    }
-
-  }
-
-  
-  //hue++;//increment the color basis был общий оттенок на весь эффект. теперь у каждой звезды свой
-  //h = hue;  //set h to the color basis
-  counter++;
-  if (driftx > (WIDTH - spirocenterX / 2U))//change directin of drift if you get near the right 1/4 of the screen
-    cangle = 0 - fabs(cangle);
-  if (driftx < spirocenterX / 2U)//change directin of drift if you get near the right 1/4 of the screen
-    cangle = fabs(cangle);
-  if ((uint8_t)counter % CENTER_DRIFT_SPEED == 0)
-    driftx = driftx + cangle;//move the x center every so often
-
-  if (drifty > ( HEIGHT - spirocenterY / 2U))// if y gets too big, reverse
-    sangle = 0 - fabs(sangle);
-  if (drifty < spirocenterY / 2U) // if y gets too small reverse
-    sangle = fabs(sangle);
-  if (((uint8_t)counter + CENTER_DRIFT_SPEED / 2U) % CENTER_DRIFT_SPEED == 0)
-    drifty =  drifty + sangle;//move the y center every so often
-  
-  //по идее, не нужно равнять диапазоны плавающего центра. за них и так вылет невозможен
-  //driftx = constrain(driftx, spirocenterX - spirocenterX / 3, spirocenterX + spirocenterX / 3);//constrain the center, probably never gets evoked any more but was useful at one time to keep the graphics on the screen....
-  //drifty = constrain(drifty, spirocenterY - spirocenterY / 3, spirocenterY + spirocenterY / 3);
-
-  for (uint8_t num = 0; num < bballsNUM; num++) {
-    if (counter >= bballsPos[num])//(counter >= ringdelay)
-    {
-      if (counter - bballsPos[num] <= WIDTH + 5U) {  //(counter - ringdelay <= WIDTH + 5){
-        //drawstar(driftx  , drifty, 2 * (counter - ringdelay), (counter - ringdelay), pointy, blender + h, h * 2 + 85);
-        drawStar(driftx  , drifty, 2 * (counter - bballsPos[num]), (counter - bballsPos[num]), bballsX[num], STAR_BLENDER + bballsCOLOR[num], bballsCOLOR[num] * 2);//, h * 2 + 85);// что, бл, за 85?!
-        bballsCOLOR[num]++;
-      }
-      else
-        //bballsX[num] = random8(3, 9);//pointy = random8(3, 9); // количество углов в звезде
-        bballsPos[num] = counter + (bballsNUM << 1) + 1U;//random8(50, 99);//modes[currentMode].Scale;//random8(50, 99); // задержка следующего пуска звезды
-    }
-  }
-}
-*/
-// ------- Эффект "Звезды"
     #define STARS_NUM (16)
     uint8_t stars_count;
     float color[STARS_NUM] ;                        // цвет звезды
@@ -2154,4 +2063,273 @@ void shadowsRoutine() {
     
     nblend( leds[pixelnumber], newcolor, 64);
   }
+}
+
+// ---- Эффект "Узоры"
+   int8_t patternIdx = -1;
+    int8_t lineIdx = 0;
+    bool dir = true;
+    byte _bri = 255U;
+    CHSV colorMR[8] = {
+        CHSV(0, 0, 0),              // 0 - Black
+        CHSV(HUE_RED, 255, 255),    // 1 - Red
+        CHSV(HUE_PURPLE , 255, 255),  // 2 - Green
+        CHSV(HUE_BLUE, 255, 255),   // 3 - Blue
+        CHSV(HUE_YELLOW, 255, 255), // 4 - Yellow
+        CHSV(0, 0, 255),            // 5 - White
+        CHSV(0, 0, 0),              // 6 - 1-й случайный цвет
+        CHSV(0, 0, 0),              // 7 - 2-й случайный цвет
+    };
+#define MAX_PATTERN 13
+
+typedef uint8_t Pattern[10][10];
+
+const Pattern patterns[] PROGMEM = {
+{// 0 зигзаг ********
+{6,6,6,6,6,7,7,7,7,7},  
+{7,6,6,6,6,6,7,7,7,7},
+{7,7,6,6,6,6,6,7,7,7},
+{7,7,7,6,6,6,6,6,7,7},
+{7,7,7,7,6,6,6,6,6,7},
+{7,7,7,7,7,6,6,6,6,6},
+{7,7,7,7,6,6,6,6,6,7},
+{7,7,7,6,6,6,6,6,7,7},
+{7,7,6,6,6,6,6,7,7,7},
+{7,6,6,6,6,6,7,7,7,7}, 
+},
+{// 1 ноты ********* белые на цветном фоне
+{6,6,6,6,6,5,5,5,6,6},
+{6,6,6,6,6,5,6,6,5,6},
+{6,6,6,6,6,5,6,6,6,6},
+{6,6,6,6,6,5,6,6,6,6},
+{6,6,6,6,6,5,6,6,6,6},
+{6,6,5,5,5,5,6,6,6,6},
+{6,5,5,5,5,5,6,6,6,6},
+{6,6,5,5,5,6,6,6,6,6},
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,6,6,6,5,6,6,6,6},
+},
+{// 2 ромб *********
+{6,6,6,6,7,7,7,6,6,6},
+{6,6,6,7,7,7,7,7,6,6},
+{6,6,7,7,7,7,7,7,7,6},
+{6,7,7,7,7,7,7,7,7,7},
+{7,7,7,7,7,7,7,7,7,7},
+{6,7,7,7,7,7,7,7,7,7},
+{6,6,7,7,7,7,7,7,7,6},
+{6,6,6,7,7,7,7,7,6,6},
+{6,6,6,6,7,7,7,6,6,6}, 
+{6,6,6,6,6,7,6,6,6,6},
+},
+{// 3 сердце *********
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,1,1,6,6,6,1,1,6},
+{6,1,1,1,1,6,1,1,1,1},
+{6,1,1,1,1,1,1,1,1,1},
+{6,1,1,1,1,1,1,1,1,1},
+{6,6,1,1,1,1,1,1,1,6},
+{6,6,1,1,1,1,1,1,1,6},
+{6,6,6,1,1,1,1,1,6,6},
+{6,6,6,6,1,1,1,6,6,6}, 
+{6,6,6,6,6,1,6,6,6,6},
+},
+{// 4 елка *********    зеленая на черном
+{0,0,0,0,2,0,0,0,0,0},
+{0,0,0,2,2,2,0,0,0,0},
+{0,0,2,2,2,2,2,0,0,0},
+{0,2,2,2,2,2,2,2,0,0},
+{2,2,2,2,2,2,2,2,2,0},
+{0,0,0,0,2,0,0,0,0,0},
+{0,0,0,2,2,2,0,0,0,0},
+{0,0,2,2,2,2,2,0,0,0},
+{0,2,2,2,2,2,2,2,0,0},
+{2,2,2,2,2,2,2,2,2,0}, 
+},
+{// 5 клеточка *********
+{6,6,6,7,7,7,7,7,7,6},
+{6,6,6,6,7,7,7,7,6,6},
+{6,6,6,6,6,7,7,6,6,6},
+{7,7,6,6,6,6,6,6,6,6},
+{7,7,7,6,6,6,6,6,6,7},
+{7,7,7,7,6,6,6,6,7,7},
+{7,7,7,6,6,6,6,6,6,7},
+{7,7,6,6,6,6,6,6,6,6},
+{6,6,6,6,6,7,7,6,6,6},
+{6,6,6,6,7,7,7,7,6,6}, 
+},
+{// 6 смайлик********* желтый на зеленом
+{2,2,2,2,2,2,2,2,2,2},
+{2,2,4,4,4,4,4,2,2,2},
+{2,4,4,0,4,0,4,4,2,2},
+{2,4,4,4,4,4,4,4,2,2},
+{2,4,4,4,4,4,4,4,2,2},
+{2,4,0,4,4,4,0,4,2,2},
+{2,4,4,0,0,0,4,4,2,2},
+{2,2,4,4,4,4,4,2,2,2},
+{2,2,2,2,2,2,2,2,2,2},
+{2,2,2,2,2,2,2,2,2,2}, 
+},
+{// 7 ********** зигзаг
+{6,0,7,7,7,7,7,0,6,6},
+{6,6,0,7,7,7,0,6,6,6},
+{6,6,6,0,7,0,6,6,6,6},
+{6,6,6,6,0,6,6,6,6,0},
+{0,6,6,6,6,6,6,6,0,7},
+{7,0,6,6,6,6,6,0,7,7},
+{7,7,0,6,6,6,0,7,7,7},
+{7,7,7,0,6,0,7,7,7,7},
+{7,7,7,7,0,7,7,7,7,0},
+{0,7,7,7,7,7,7,7,0,6},
+},
+{// 8 ********* полосы
+{6,6,6,6,6,6,7,7,7,7},
+{7,6,6,6,6,6,6,7,7,7},
+{7,7,6,6,6,6,6,6,7,7},
+{7,7,7,6,6,6,6,6,6,7},
+{7,7,7,7,6,6,6,6,6,6},
+{6,7,7,7,7,6,6,6,6,6},
+{6,6,7,7,7,7,6,6,6,6},
+{6,6,6,7,7,7,7,6,6,6},
+{6,6,6,6,7,7,7,7,6,6},
+{6,6,6,6,6,7,7,7,7,6},
+},
+{// 9 ********** волны
+{6,7,7,7,6,6,7,7,7,6},
+{6,6,7,6,6,6,6,7,6,6},
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,6,6,6,6,6,6,6,6},
+{7,6,6,6,7,7,6,6,6,7},
+{7,7,6,7,7,7,7,6,7,7},
+{7,7,7,7,7,7,7,7,7,7},
+{7,7,7,7,7,7,7,7,7,7},
+{7,7,7,7,7,7,7,7,7,7},
+},
+{// 10 ********* чешуя
+{6,7,7,7,7,7,7,7,7,7},
+{7,6,7,7,7,7,7,7,7,6},
+{7,6,6,7,7,7,7,7,6,6},
+{7,7,6,6,6,6,6,6,6,7},
+{7,7,7,6,6,6,6,6,7,7},
+{7,7,7,7,6,6,6,7,7,7},
+{7,7,7,7,7,6,7,7,7,7},
+{7,7,7,7,6,7,6,7,7,7},
+{7,7,6,6,7,7,7,6,6,6},
+{6,6,7,7,7,7,7,7,7,6},
+},
+{// 11 ********* портьера
+{7,6,6,6,6,6,6,6,6,6},
+{7,6,6,6,6,6,6,6,6,6},
+{7,7,6,6,6,6,6,6,6,7},
+{7,7,7,7,6,6,6,7,7,7},
+{6,7,7,7,7,7,7,7,7,7},
+{6,7,7,7,7,7,7,7,7,7},
+{6,6,7,7,7,7,7,7,7,6},
+{6,6,6,6,7,7,7,6,6,6},
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,6,6,6,6,6,6,6,6},
+},
+{// 12 ********* плетёнка
+{7,7,7,7,7,7,7,7,7,6},
+{7,7,7,7,7,7,7,7,6,7},
+{7,7,7,7,7,7,7,6,6,6},
+{6,7,7,7,7,7,6,6,6,6},
+{6,6,7,7,7,6,7,6,6,6},
+{6,6,6,7,6,7,7,7,6,6},
+{6,6,6,6,7,7,7,7,7,6},
+{6,6,6,7,7,7,7,7,7,7},
+{7,6,7,7,7,7,7,7,7,7},
+{6,7,7,7,7,7,7,7,7,7},
+},
+}; 
+// Заполнение матрицы указанным паттерном
+// ptrn - индекс узора в массив узоров patterns[] в patterns.h
+// X   - позиция X вывода узора
+// Y   - позиция Y вывода узора
+// W   - ширина паттерна
+// H   - высота паттерна
+// dir - рисовать 'u' снизу, сдвигая вверх; 'd' - сверху, сдвигая вниз
+void drawPattern(uint8_t ptrn, uint8_t X, uint8_t Y, uint8_t W, uint8_t H, bool dir) {
+  
+ 
+    if (dir) 
+    shiftDown();
+  else 
+    shiftUp();
+ 
+
+  uint8_t y = dir ? (HEIGHT - 1) : 0;
+
+  // Если ширина паттерна не кратна ширине матрицы - отрисовывать со сдвигом? чтобы рисунок был максимально по центру
+  int8_t offset_x = -((WIDTH % W) / 2)+2;
+  //_bri = random8(96U, 255U);
+  
+  for (uint8_t x = 0; x < WIDTH + W; x++) {
+    int8_t xx = offset_x + x;
+    if (xx >= 0 && xx < (int8_t)WIDTH) {
+      uint8_t in = (uint8_t)pgm_read_byte(&(patterns[ptrn][lineIdx][x % 10])); 
+      CHSV color = colorMR[in];
+      CHSV color2 = color.v != 0 ? CHSV(color.h, color.s, _bri) : color;
+      drawPixelXY(xx, y, color2); 
+    }
+  }
+ if (dir) {
+    lineIdx = (lineIdx > 0) ? (lineIdx - 1) : (H - 1);  
+  } else {
+    lineIdx = (lineIdx < H - 1) ? (lineIdx + 1) : 0;
+  }
+}
+  
+
+
+// Отрисовка указанной картинки с размерами WxH в позиции XY
+void drawPicture_XY(uint8_t iconIdx, uint8_t X, uint8_t Y, uint8_t W, uint8_t H) {
+  if (loadingFlag) {
+    loadingFlag = false;
+    _bri = random8(96U, 255U);
+  }
+
+  for (byte x = 0; x < W; x++) {
+    for (byte y = 0; y < H; y++) {
+      uint8_t in = (uint8_t)pgm_read_byte(&(patterns[iconIdx][y][x])); 
+      if (in != 0) {
+        CHSV color = colorMR[in];        
+        CHSV color2 = color.v != 0 ? CHSV(color.h, color.s, _bri) : color;
+        drawPixelXY(X+x,Y+H-y, color2); 
+      }
+    }
+  }
+}
+
+void patternsRoutine() {
+  
+
+  if (loadingFlag) {
+    loadingFlag = false;
+    patternIdx = map(modes[currentMode].Scale, 1U, MAX_PATTERN + 1, -1, MAX_PATTERN);  // мапим к ползунку масштаба
+    if (patternIdx < 0) {
+      patternIdx = random8(0U, MAX_PATTERN); 
+    }
+    //fadeToBlackBy(leds, NUM_LEDS, 25);
+    if (dir) 
+      lineIdx = 9;         // Картинка спускается сверху вниз - отрисовка с нижней строки паттерна (паттерн 10x10)
+    else 
+      lineIdx = 0;         // Картинка поднимается сверху вниз - отрисовка с верхней строки паттерна
+    // Цвета с индексом 6 и 7 - случайные, определяются в момент настройки эффекта
+    colorMR[6] = CHSV(random8(), 255U, 255U);
+    if (random8() % 10 == 0) {
+      colorMR[7] = CHSV(0U, 0U, 255U);
+    } else {
+      colorMR[7] = CHSV(random8(), 255U, 255U);
+      while (fabs(colorMR[7].h - colorMR[6].h) < 32) {
+        colorMR[7] = CHSV(random8(), 255U, 255U);
+      }
+    }
+  }  
+  drawPattern(patternIdx, 0, 0, 10, 10, dir);
+  EVERY_N_MILLIS((1005000U / modes[currentMode].Speed)){
+    if (modes[currentMode].Scale == 1) 
+    dir=!dir;
+    loadingFlag = true;
+  }  
 }

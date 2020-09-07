@@ -36,7 +36,8 @@ void effectsTick() {
         case 28: fire2012WithPalette();         break;   
         case 29: pulseRoutine(1);               break;
         case 30: MunchRoutine();                break;
-        case 31: sparklesRoutine();             break;
+        case 31: patternsRoutine();             break;
+        case 32: sparklesRoutine();             break;
        
 
       }
