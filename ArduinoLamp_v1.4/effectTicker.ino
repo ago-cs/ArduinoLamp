@@ -11,7 +11,7 @@ void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 6 ||
    case 7 : madnessNoise();                break;
    case 8 : cloudNoise();                  break;
    case 9 : lavaNoise();                   break;
-   case 10 : plasmaNoise();                break;
+   case 10: plasmaNoise();                 break;
    case 11: rainbowNoise();                break;
    case 12: rainbowStripeNoise();          break;
    case 13: zebraNoise();                  break;
@@ -21,7 +21,7 @@ void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 6 ||
    case 17: smokeNoise();                  break;
    case 18: colorRoutine();                break;
    case 19: colorsRoutine();               break;
-   case 20: whiteLamp();                   break;
+   case 20: whiteLampRoutine();            break;
    case 21: matrixRoutine();               break;
    case 22: snowRoutine();                 break;
    case 23: stormRoutine();                break;
