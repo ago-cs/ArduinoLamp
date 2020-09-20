@@ -5,12 +5,14 @@ uint8_t wrapX(int8_t x){
 uint8_t wrapY(int8_t y){
   return (y + HEIGHT)%HEIGHT;
 }
+uint8_t deltaHue, deltaHue2; // ещё пара таких же, когда нужно много
 uint8_t step; // какой-нибудь счётчик кадров или постедовательностей операций
 uint8_t pcnt;
 uint8_t line[WIDTH];
 uint8_t deltaValue; // просто повторно используемая переменная
 uint8_t shiftHue[HEIGHT];
 uint8_t shiftValue[HEIGHT];
+byte hue, hue2;
 // палитра для типа реалистичного водопада (если ползунок Масштаб выставить на 100)
 extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
 CRGB _pulse_color;
@@ -30,6 +32,31 @@ const TProgmemRGBPalette16 *palette_arr[] = {
   &RainbowStripeColors_p
 };
 
+void dimAll(uint8_t value) { 
+    fadeToBlackBy (leds, NUM_LEDS, 255U - value);}
+
+
+void shiftDown(){
+  for (byte x = 0; x < WIDTH; x++) {
+    for (byte y = 0; y < HEIGHT - 1; y++) {
+      drawPixelXY(x, y, getPixColorXY(x, y + 1));
+    }}}
+void shiftUp() {
+  for (byte x = 0; x < WIDTH; x++) {
+    for (byte y = HEIGHT; y > 0; y--) {
+      drawPixelXY(x, y,getPixColorXY(x, y - 1));
+    }
+  }
+}   
+void shiftDiag(){
+  for (int8_t y = 0U; y < HEIGHT - 1U; y++)
+  {
+    for (int8_t x = 0; x < WIDTH; x++)
+    {
+      drawPixelXY(wrapX(x + 1U), y, getPixColorXY(x, y + 1U));
+    }
+  }     
+}
 // --------------------------------- конфетти ------------------------------------
 #define FADE_OUT_SPEED        (70U)                         // скорость затухания
 void sparklesRoutine()
@@ -106,7 +133,7 @@ void fireRoutine() {
     generateLine();
   }
   if (pcnt >= 100) {
-    shiftUp();
+    ShiftUp();
     generateLine();
     pcnt = 0;
   }
@@ -122,7 +149,7 @@ void generateLine() {
   }
 }
 
-void shiftUp() {
+void ShiftUp() {
   for (uint8_t y = HEIGHT - 1; y > 0; y--) {
     for (uint8_t x = 0; x < WIDTH; x++) {
       uint8_t newX = x;
@@ -190,7 +217,6 @@ void drawFrame(int pcnt) {
   }
 }
 // ---------------------------------------- радуга ------------------------------------------
-byte hue;
 void rainbowVertical() {
   hue += 2;
   for (byte j = 0; j < HEIGHT; j++) {
@@ -243,12 +269,7 @@ void colorRoutine() {
 
 // ------------------------------ снегопад 2.0 --------------------------------
 void snowRoutine() {
-  // сдвигаем всё вниз
-  for (byte x = 0; x < WIDTH; x++) {
-    for (byte y = 0; y < HEIGHT - 1; y++) {
-      drawPixelXY(x, y, getPixColorXY(x, y + 1));
-    }
-  }
+  shiftDown();
 
   for (byte x = 0; x < WIDTH; x++) {
     // заполняем случайно верхнюю строку
@@ -456,7 +477,6 @@ void ballRoutine()
 //-------------------Светлячки со шлейфом----------------------------
 #define BALLS_AMOUNT          (3U)                          // количество "шариков"
 #define CLEAR_PATH            (1U)                          // очищать путь
-#define BALL_TRACK            (1U)                          // (0 / 1) - вкл/выкл следы шариков
 #define TRACK_STEP            (70U)                         // длина хвоста шарика (чем больше цифра, тем хвост короче)
 int16_t coord[BALLS_AMOUNT][2U];
 int8_t vector[BALLS_AMOUNT][2U];
@@ -483,14 +503,7 @@ void ballsRoutine()
     }
   }
 
-  if (!BALL_TRACK)                                          // режим без следов шариков
-  {
-    memset8( leds, 0, NUM_LEDS * 3);
-  }
-  else                                                      // режим со следами
-  {
     fader(TRACK_STEP);
-  }
 
   // движение шариков
   for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
@@ -522,7 +535,7 @@ void ballsRoutine()
 
 //-----------------Эффект Вышиванка-------------
 byte count = 0;
-byte dir = 1;
+byte direct = 1;
 byte flip = 0;
 byte generation = 0;
 void MunchRoutine() { if (loadingFlag)
@@ -535,10 +548,10 @@ void MunchRoutine() { if (loadingFlag)
     }
   }
 
-  count += dir;
+  count += direct;
 
   if (count <= 0 || count >= WIDTH) {
-    dir = -dir;
+    direct = -direct;
   }
 
   if (count <= 0) {

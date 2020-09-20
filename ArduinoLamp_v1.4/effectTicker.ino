@@ -28,6 +28,7 @@ void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 6 ||
    case 24: ballRoutine();                 break;
    case 25: ballsRoutine();                break;
    case 26: MunchRoutine();                break;
+   //case 27: patternsRoutine();                break;
 }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:
