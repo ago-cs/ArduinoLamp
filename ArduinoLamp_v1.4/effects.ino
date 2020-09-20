@@ -254,30 +254,59 @@ void snowRoutine() {
     // заполняем случайно верхнюю строку
     // а также не даём двум блокам по вертикали вместе быть
     if (getPixColorXY(x, HEIGHT - 2) == 0 && (random(0, modes[currentMode].Scale) == 0))
-      drawPixelXY(x, HEIGHT - 1, 0xE0FFFF - 0x101010 * random(0, 4));
+      drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4));
     else
       drawPixelXY(x, HEIGHT - 1, 0x000000);
   }
 }
 
 // ------------------------------ МАТРИЦА ------------------------------
-void matrixRoutine() {
-  for (byte x = 0; x < WIDTH; x++) {
-    // заполняем случайно верхнюю строку
-    uint32_t thisColor = getPixColorXY(x, HEIGHT - 1);
-    if (thisColor == 0)
-      drawPixelXY(x, HEIGHT - 1, 0x00FF00 * (random(0, modes[currentMode].Scale) == 0));
-    else if (thisColor < 0x002000)
-      drawPixelXY(x, HEIGHT - 1, 0);
-    else
-      drawPixelXY(x, HEIGHT - 1, thisColor - 0x002000);
-  }
-
-  // сдвигаем всё вниз
-  for (byte x = 0; x < WIDTH; x++) {
-    for (byte y = 0; y < HEIGHT - 1; y++) {
-      drawPixelXY(x, y, getPixColorXY(x, y + 1));
+void matrixRoutine()
+{
+  for (uint8_t x = 0U; x < WIDTH; x++)
+  {
+    // обрабатываем нашу матрицу снизу вверх до второй сверху строчки
+    for (uint8_t y = 0U; y < HEIGHT - 1U; y++)
+    {
+      uint32_t thisColor = getPixColorXY(x, y);                                              // берём цвет нашего пикселя
+      uint32_t upperColor = getPixColorXY(x, y + 1U);                                        // берём цвет пикселя над нашим
+      if (upperColor >= 0x900000 && random(7 * HEIGHT) != 0U)                  // если выше нас максимальная яркость, игнорим этот факт с некой вероятностью или опускаем цепочку ниже
+        drawPixelXY(x, y, upperColor);
+      else if (thisColor == 0U && random((100 - modes[currentMode].Scale) * HEIGHT) == 0U)  // если наш пиксель ещё не горит, иногда зажигаем новые цепочки
+        //else if (thisColor == 0U && random((100 - modes[currentMode].Scale) * HEIGHT*3) == 0U)  // для длинных хвостов
+        drawPixelXY(x, y, 0x9bf800);
+      else if (thisColor <= 0x050800)                                                        // если наш пиксель почти погас, стараемся сделать затухание медленней
+      {
+        if (thisColor >= 0x030000)
+          drawPixelXY(x, y, 0x020300);
+        else if (thisColor != 0U)
+          drawPixelXY(x, y, 0U);
+      }
+      else if (thisColor >= 0x900000)                                                        // если наш пиксель максимальной яркости, резко снижаем яркость
+        drawPixelXY(x, y, 0x558800);
+      else
+        drawPixelXY(x, y, thisColor - 0x0a1000);                                             // в остальных случаях снижаем яркость на 1 уровень
+      //drawPixelXY(x, y, thisColor - 0x050800);                                             // для длинных хвостов
     }
+    // аналогично обрабатываем верхний ряд пикселей матрицы
+    uint32_t thisColor = getPixColorXY(x, HEIGHT - 1U);
+    if (thisColor == 0U)                                                                     // если наш верхний пиксель не горит, заполняем его с вероятностью .Scale
+    {
+      if (random(100 - modes[currentMode].Scale) == 0U)
+        drawPixelXY(x, HEIGHT - 1U, 0x9bf800);
+    }
+    else if (thisColor <= 0x050800)                                                          // если наш верхний пиксель почти погас, стараемся сделать затухание медленней
+    {
+      if (thisColor >= 0x030000)
+        drawPixelXY(x, HEIGHT - 1U, 0x020300);
+      else
+        drawPixelXY(x, HEIGHT - 1U, 0U);
+    }
+    else if (thisColor >= 0x900000)                                                          // если наш верхний пиксель максимальной яркости, резко снижаем яркость
+      drawPixelXY(x, HEIGHT - 1U, 0x558800);
+    else
+      drawPixelXY(x, HEIGHT - 1U, thisColor - 0x0a1000);                                     // в остальных случаях снижаем яркость на 1 уровень
+    //drawPixelXY(x, HEIGHT - 1U, thisColor - 0x050800);                                     // для длинных хвостов
   }
 }
 
