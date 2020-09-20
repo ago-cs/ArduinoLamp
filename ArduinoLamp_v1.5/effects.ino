@@ -293,12 +293,7 @@ void colorRoutine() {
 
 // ------------------------------ снегопад 2.0 --------------------------------
 void snowRoutine() {
-  // сдвигаем всё вниз
-  for (byte x = 0; x < WIDTH; x++) {
-    for (byte y = 0; y < HEIGHT - 1; y++) {
-      drawPixelXY(x, y, getPixColorXY(x, y + 1));
-    }
-  }
+shiftDown();
 
   for (byte x = 0; x < WIDTH; x++) {
     // заполняем случайно верхнюю строку
@@ -367,8 +362,8 @@ void stormRoutine()
 //Stefan Petrick
 void SinusoidRoutine()
 {
-  const uint8_t semiHeightMajor =  HEIGHT / 2 + (HEIGHT % 2);
-  const uint8_t semiWidthMajor =  WIDTH / 2  + (WIDTH % 2) ;
+  const uint8_t semiHEIGHTMajor =  HEIGHT / 2 + (HEIGHT % 2);
+  const uint8_t semiWIDTHMajor =  WIDTH / 2  + (WIDTH % 2) ;
   float e_s3_Speed = 0.004 * modes[currentMode].Speed + 0.015; // Speed of the movement along the Lissajous curves
   float e_s3_size = 3 * (float)modes[currentMode].Scale / 100.0 + 2;  // amplitude of the curves
 
@@ -378,35 +373,35 @@ void SinusoidRoutine()
     for (uint8_t x = 0; x < WIDTH; x++) {
       CRGB color;
 
-      /*float cx = y + float(e_s3_size * (sinf (float(e_s3_Speed * 0.003 * time_shift)))) - semiHeightMajor;  // the 8 centers the middle on a 16x16
-      float cy = x + float(e_s3_size * (cosf (float(e_s3_Speed * 0.0022 * time_shift)))) - semiWidthMajor;
+      /*float cx = y + float(e_s3_size * (sinf (float(e_s3_Speed * 0.003 * time_shift)))) - semiHEIGHTMajor;  // the 8 centers the middle on a 16x16
+      float cy = x + float(e_s3_size * (cosf (float(e_s3_Speed * 0.0022 * time_shift)))) - semiWIDTHMajor;
       float v = 127 * (1 + sinf ( sqrtf ( ((cx * cx) + (cy * cy)) ) ));
       color.r = ~v;
 
-      cx = x + float(e_s3_size * (sinf (e_s3_Speed * float(0.0021 * time_shift)))) - semiWidthMajor;
-      cy = y + float(e_s3_size * (cosf (e_s3_Speed * float(0.002 * time_shift)))) - semiHeightMajor;
+      cx = x + float(e_s3_size * (sinf (e_s3_Speed * float(0.0021 * time_shift)))) - semiWIDTHMajor;
+      cy = y + float(e_s3_size * (cosf (e_s3_Speed * float(0.002 * time_shift)))) - semiHEIGHTMajor;
       v = 127 * (1 + sinf ( sqrtf ( ((cx * cx) + (cy * cy)) ) ));
       color.b = ~v;
 
-      cx = x + float(e_s3_size * (sinf (e_s3_Speed * float(0.0041 * time_shift)))) - semiWidthMajor;
-      cy = y + float(e_s3_size * (cosf (e_s3_Speed * float(0.0052 * time_shift)))) - semiHeightMajor;
+      cx = x + float(e_s3_size * (sinf (e_s3_Speed * float(0.0041 * time_shift)))) - semiWIDTHMajor;
+      cy = y + float(e_s3_size * (cosf (e_s3_Speed * float(0.0052 * time_shift)))) - semiHEIGHTMajor;
       v = 127 * (1 + sinf ( sqrtf ( ((cx * cx) + (cy * cy)) ) ));
       color.g = ~v;*/
 
       uint8_t _scale = map8(255-modes[currentMode].Scale,50,150);
 
-      float cx = (y - semiHeightMajor) + float(e_s3_size * (sin16 (e_s3_Speed * 98.301 * time_shift)))/32767.0;  // the 8 centers the middle on a 16x16
-      float cy = (x - semiWidthMajor) + float(e_s3_size * (cos16 (e_s3_Speed * 72.0874 * time_shift)))/32767.0;
+      float cx = (y - semiHEIGHTMajor) + float(e_s3_size * (sin16 (e_s3_Speed * 98.301 * time_shift)))/32767.0;  // the 8 centers the middle on a 16x16
+      float cy = (x - semiWIDTHMajor) + float(e_s3_size * (cos16 (e_s3_Speed * 72.0874 * time_shift)))/32767.0;
       int8_t v = 127 * (1 + sin16 ( 127*_scale*sqrtf ( (((float)cx*cx) + ((float)cy*cy)) ) )/32767.0);
       color.r = ~v;
 
-      cx = (y - semiHeightMajor) + float(e_s3_size * (sin16 (e_s3_Speed * 68.8107 * time_shift)))/32767.0;
-      cy = (x - semiWidthMajor) + float(e_s3_size * (cos16 (e_s3_Speed * 65.534 * time_shift)))/32767.0;
+      cx = (y - semiHEIGHTMajor) + float(e_s3_size * (sin16 (e_s3_Speed * 68.8107 * time_shift)))/32767.0;
+      cy = (x - semiWIDTHMajor) + float(e_s3_size * (cos16 (e_s3_Speed * 65.534 * time_shift)))/32767.0;
       v = 127 * (1 + sin16 ( 127*_scale*sqrtf ( (((float)cx*cx) + ((float)cy*cy)) ) )/32767.0);
       color.g = ~v;
 
-      cx = (y - semiHeightMajor) + float(e_s3_size * (sin16 (e_s3_Speed * 134.3447 * time_shift)))/32767.0;
-      cy = (x - semiWidthMajor) + float(e_s3_size * (cos16 (e_s3_Speed * 170.3884 * time_shift)))/32767.0;
+      cx = (y - semiHEIGHTMajor) + float(e_s3_size * (sin16 (e_s3_Speed * 134.3447 * time_shift)))/32767.0;
+      cy = (x - semiWIDTHMajor) + float(e_s3_size * (cos16 (e_s3_Speed * 170.3884 * time_shift)))/32767.0;
       v = 127 * (1 + sin16 ( 127*_scale*sqrtf ( (((float)cx*cx) + ((float)cy*cy)) ) )/32767.0);
       color.b = ~v;
      drawPixelXY(x, y, color);
@@ -492,7 +487,7 @@ void MetaBallsRoutine() {
 
 byte waveThetaUpdate = 0;
 byte waveThetaUpdateFrequency = 0;
-byte waveTheta = 0;
+float waveTheta = 0;
 
 byte hueUpdate = 0;
 byte hueUpdateFrequency = 0;
@@ -516,44 +511,44 @@ void WaveRoutine() {
     //hueUpdateFrequency = random(1, 6);
   }
 
-  dimAll(254);
+  dimAll(200);
 
-  int n = 0;
+  float n = 0;
 
   switch (waveRotation) {
     case 0:
-      for (uint8_t x = 0; x < WIDTH; x++) {
-        n = quadwave8(x * 2 + waveTheta) / waveScale;
-        drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
+      for (float x = 0; x < WIDTH; x+= 0.25) {
+        n = (float)quadwave8(x * 2 + waveTheta) / waveScale;
+        drawPixelXYF(x, n, ColorFromPalette(*curPalette, hue + x));
         if (waveCount != 1)
-          drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(*curPalette, hue + x));
+          drawPixelXYF(x, HEIGHT - 1 - n, ColorFromPalette(*curPalette, hue + x));
       }
       break;
 
     case 1:
-      for (uint8_t y = 0; y < HEIGHT; y++) {
-        n = quadwave8(y * 2 + waveTheta) / waveScale;
-        drawPixelXY(n, y, ColorFromPalette(*curPalette, hue + y));
+      for (float y = 0; y < HEIGHT; y+= 0.25) {
+        n = (float)quadwave8(y * 2 + waveTheta) / waveScale;
+        drawPixelXYF(n, y, ColorFromPalette(*curPalette, hue + y));
         if (waveCount != 1)
-          drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(*curPalette, hue + y));
+          drawPixelXYF(WIDTH - 1 - n, y, ColorFromPalette(*curPalette, hue + y));
       }
       break;
 
     case 2:
-      for (uint8_t x = 0; x < WIDTH; x++) {
-        n = quadwave8(x * 2 - waveTheta) / waveScale;
-        drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
+      for (float x = 0; x < WIDTH; x+= 0.25) {
+        n = (float)quadwave8(x * 2 - waveTheta) / waveScale;
+        drawPixelXYF(x, n, ColorFromPalette(*curPalette, hue + x));
         if (waveCount != 1)
-          drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(*curPalette, hue + x));
+          drawPixelXYF(x, HEIGHT - 1 - n, ColorFromPalette(*curPalette, hue + x));
       }
       break;
 
     case 3:
-      for (uint8_t y = 0; y < HEIGHT; y++) {
-        n = quadwave8(y * 2 - waveTheta) / waveScale;
-        drawPixelXY(n, y, ColorFromPalette(*curPalette, hue + y));
+      for (float y = 0; y < HEIGHT; y+=0.25) {
+        n = (float)quadwave8(y * 2 - waveTheta) / waveScale;
+        drawPixelXYF(n, y, ColorFromPalette(*curPalette, hue + y));
         if (waveCount != 1)
-          drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(*curPalette, hue + y));
+          drawPixelXYF(WIDTH - 1 - n, y, ColorFromPalette(*curPalette, hue + y));
       }
       break;
   }
@@ -561,7 +556,7 @@ void WaveRoutine() {
 
   if (waveThetaUpdate >= waveThetaUpdateFrequency) {
     waveThetaUpdate = 0;
-    waveTheta++;
+    waveTheta+= 5.0*((float)modes[currentMode].Speed/255.0)+1.0;
   }
   else {
     waveThetaUpdate++;
@@ -575,7 +570,7 @@ void WaveRoutine() {
     hueUpdate++;
   }
 
-  blurScreen(10); // @Palpalych советует делать размытие. вот в этом эффекте его явно не хватает...
+  
 }
 
 //-------------------------Блуждающий кубик-----------------------
@@ -813,8 +808,8 @@ void fire2012WithPalette() {
 }
 // ------------- пейнтбол -------------
 #define BORDERTHICKNESS (1U) // глубина бордюра для размытия яркой частицы: 0U - без границы (резкие края); 1U - 1 пиксель (среднее размытие) ; 2U - 2 пикселя (глубокое размытие)
-const uint8_t paintWidth = WIDTH - BORDERTHICKNESS * 2;
-const uint8_t paintHeight = HEIGHT - BORDERTHICKNESS * 2;
+const uint8_t paintWIDTH = WIDTH - BORDERTHICKNESS * 2;
+const uint8_t paintHEIGHT = HEIGHT - BORDERTHICKNESS * 2;
 
 void lightBallsRoutine()
 {
@@ -833,10 +828,10 @@ void lightBallsRoutine()
 
   // The color of each point shifts over time, each at a different speed.
   uint32_t ms = millis() / (modes[currentMode].Scale / 4 + 1);
-  leds[XY( highByte(i * paintWidth) + BORDERTHICKNESS, highByte(j * paintHeight) + BORDERTHICKNESS)] += CHSV( ms / 29, 200U, 255U);
-  leds[XY( highByte(j * paintWidth) + BORDERTHICKNESS, highByte(k * paintHeight) + BORDERTHICKNESS)] += CHSV( ms / 41, 200U, 255U);
-  leds[XY( highByte(k * paintWidth) + BORDERTHICKNESS, highByte(m * paintHeight) + BORDERTHICKNESS)] += CHSV( ms / 37, 200U, 255U);
-  leds[XY( highByte(m * paintWidth) + BORDERTHICKNESS, highByte(i * paintHeight) + BORDERTHICKNESS)] += CHSV( ms / 53, 200U, 255U);
+  leds[XY( highByte(i * paintWIDTH) + BORDERTHICKNESS, highByte(j * paintHEIGHT) + BORDERTHICKNESS)] += CHSV( ms / 29, 200U, 255U);
+  leds[XY( highByte(j * paintWIDTH) + BORDERTHICKNESS, highByte(k * paintHEIGHT) + BORDERTHICKNESS)] += CHSV( ms / 41, 200U, 255U);
+  leds[XY( highByte(k * paintWIDTH) + BORDERTHICKNESS, highByte(m * paintHEIGHT) + BORDERTHICKNESS)] += CHSV( ms / 37, 200U, 255U);
+  leds[XY( highByte(m * paintWIDTH) + BORDERTHICKNESS, highByte(i * paintHEIGHT) + BORDERTHICKNESS)] += CHSV( ms / 53, 200U, 255U);
 }
 //----------------Gifка----------------------
 /*byte frameNum;
@@ -986,45 +981,45 @@ float spirotheta1 = 0;
 float spirotheta2 = 0;
 //    byte spirohueoffset = 0; // будем использовать переменную сдвига оттенка hue из эффектов Радуга
 
-const uint8_t spiroradiusx = WIDTH / 4;
-const uint8_t spiroradiusy = HEIGHT / 4;
+const uint8_t spiroradiusx = WIDTH / 2;
+const uint8_t spiroradiusy = HEIGHT / 2;
 
 const uint8_t spirocenterX = WIDTH / 2;
 const uint8_t spirocenterY = HEIGHT / 2;
 
-const uint8_t spirominx = spirocenterX - spiroradiusx;
-const uint8_t spiromaxx = spirocenterX + spiroradiusx + 1;
-const uint8_t spirominy = spirocenterY - spiroradiusy;
-const uint8_t spiromaxy = spirocenterY + spiroradiusy + 1;
+const float spirominx = spirocenterX - spiroradiusx;
+const float spiromaxx = spirocenterX + spiroradiusx + 1;
+const float spirominy = spirocenterY - spiroradiusy;
+const float spiromaxy = spirocenterY + spiroradiusy + 1;
 
-  uint8_t spirocount = 1;
-float spirooffset = 256 / spirocount;
+uint8_t spirocount = 1;
+float spirooffset = 256 / (float)spirocount;
 boolean spiroincrement = false;
 
 boolean spirohandledChange = false;
 
-float mapsin8(uint8_t theta, uint8_t lowest = 0, uint8_t highest = 255) {
+float mapsin8(float theta, float lowest = 0, float highest = 255) {
   float beatsin = sinf(theta);
-  float rangewidth = highest - lowest;
-  float Scaledbeat = scale8(beatsin, rangewidth);
+  float rangeWIDTH = highest - lowest;
+  float Scaledbeat = (float)scale16(beatsin, rangeWIDTH);
   float result = lowest + Scaledbeat;
   return result;
 }
 
-float mapcos8(uint8_t theta, uint8_t lowest = 0, uint8_t highest = 255) {
+float mapcos8(float theta, float lowest = 0, float highest = 255) {
   float beatcos = cosf(theta);
-  float rangewidth = highest - lowest;
-  float Scaledbeat = scale8(beatcos, rangewidth);
+  float rangeWIDTH = highest - lowest;
+  float Scaledbeat = (float)scale16(beatcos, rangeWIDTH);
   float result = lowest + Scaledbeat;
   return result;
 }
 
-float beatcos8(accum88 beats_per_minute, uint8_t lowest = 0, uint8_t highest = 255, uint32_t timebase = 0, uint8_t phase_offset = 0)
+float beatcos8(accum88 beats_per_minute, float lowest = 0, float highest = 255, float timebase = 0, float phase_offset = 0)
 {
   float beat = beat8(beats_per_minute, timebase);
   float beatcos = cosf(beat + phase_offset);
-  float rangewidth = highest - lowest;
-  float scaledbeat = scale8(beatcos, rangewidth);
+  float rangeWIDTH = highest - lowest;
+  float scaledbeat = (float)scale16(beatcos, rangeWIDTH);
   float result = lowest + scaledbeat;
   return result;
 }
@@ -1036,33 +1031,33 @@ void spiroRoutine() {
     setCurrentPalette();
   }
 
-  blurScreen(5);
+  //blurScreen(5);
   dimAll(255U - modes[currentMode].Speed / 10);
 
   boolean change = false;
 
-  for (uint8_t i = 0; i < spirocount; i++) {
-    float x = (float)mapsin8(spirotheta1 + i * spirooffset, spirominx, spiromaxx);
-    float y = (float)mapcos8(spirotheta1 + i * spirooffset, spirominy, spiromaxy);
+  for (float i = 0; i < spirocount; i+0.25f) {
+    float x = mapsin8(spirotheta1 + i * spirooffset, spirominx, spiromaxx);
+    float y = mapcos8(spirotheta1 + i * spirooffset, spirominy, spiromaxy);
 
-    float x2 = (float)mapsin8(spirotheta2 + i * spirooffset, x - spiroradiusx, x + spiroradiusx);
-    float y2 = (float)mapcos8(spirotheta2 + i * spirooffset, y - spiroradiusy, y + spiroradiusy);
+    float x2 = mapsin8(spirotheta2 + i * spirooffset, x - spiroradiusx, x + spiroradiusx);
+    float y2 = mapcos8(spirotheta2 + i * spirooffset, y - spiroradiusy, y + spiroradiusy);
 
 
     //CRGB color = ColorFromPalette( PartyColors_p, (hue + i * spirooffset), 128U); // вообще-то палитра должна постоянно меняться, но до адаптации этого руки уже не дошли
     //CRGB color = ColorFromPalette(*curPalette, hue + i * spirooffset, 128U); // вот так уже прикручена к бегунку Масштаба. за
     //leds[XY(x2, y2)] += color;
-    if (x2 < WIDTH && y2 < HEIGHT) // добавил проверки. не знаю, почему эффект подвисает без них
-      drawPixelXY(x2, y2, (CRGB)ColorFromPalette(*curPalette, hue + i * spirooffset));
+    if (x2 < (float)WIDTH && y2 < (float)HEIGHT) // добавил проверки. не знаю, почему эффект подвисает без них
+      drawPixelXYF(x2, y2, (CRGB)ColorFromPalette(*curPalette, (float)hue + i * spirooffset));
 
     if ((x2 == spirocenterX && y2 == spirocenterY) ||
         (x2 == spirocenterX && y2 == spirocenterY)) change = true;
   }
 
-  spirotheta2 += 2;
+  spirotheta2 += 0.5;
 
   EVERY_N_MILLIS(12) {
-    spirotheta1 += 1;
+    spirotheta1 += 0.25;
   }
 
   EVERY_N_MILLIS(75) {
@@ -1084,7 +1079,7 @@ void spiroRoutine() {
           spirocount -= 1;
       }
 
-      spirooffset = 256 / spirocount;
+      spirooffset = 256 / (float)spirocount;
     }
 
     if (!change) spirohandledChange = false;
@@ -1153,6 +1148,23 @@ void MunchRoutine() {
   generation++;
 }
 
+float _dri_speed = 255; //fmap(modes[currentMode].Speed, 1., 255., 2., 20.); 
+uint8_t _dri_delta = beatsin8(1U);
+void incrementalDriftRoutine()
+{
+  if (loadingFlag) { setCurrentPalette(); loadingFlag = false;
+    return false;
+  }dimAll(beatsin8(2U, 1, 8));
+  for (int i = 2; i <= WIDTH / 2; i++) // возможно, стоит здесь использовать const MINLENGTH
+  {
+CRGB color = ColorFromPalette(*curPalette,(i - 2) * (240 / (WIDTH / 2)));
+    uint8_t x = beatcos8((spirocenterX + 1 - i) * 2, spirocenterX - i, spirocenterX + i);
+        uint8_t y = beatsin8((spirocenterY + 1 - i) * 2, spirocenterY - i, spirocenterY + i);      // используем константы центра матрицы из эффекта Кометы
+    drawPixelXY(x, y, color ); // используем массив палитр из других эффектов выше
+  }
+  //blur2d(beatsin8(3U, 5, 100));
+
+}
 // ------------------------------ ЭФФЕКТ КОЛЬЦА / КОДОВЫЙ ЗАМОК ----------------------
 // (c) SottNick
 // из-за повторного использоваия переменных от других эффектов теперь в этом коде невозможно что-то понять.
@@ -1276,7 +1288,7 @@ void prismataRoutine()
 //  With BIG thanks to the FastLED community!
 //  адаптация от SottNick
 #define bballsGRAVITY           (-9.81)              // Downward (negative) acceleration of gravity in m/s^2
-#define bballsH0                (1)                  // Starting height, in meters, of the ball (strip length)
+#define bballsH0                (1)                  // Starting HEIGHT, in meters, of the ball (strip length)
 #define bballsMaxNUM            (WIDTH * 2)          // максимальное количество мячиков прикручено при адаптации для бегунка Масштаб
 uint8_t bballsNUM;                                   // Number of bouncing balls you want (recommend < 7, but 20 is fun in its own way) ... количество мячиков теперь задаётся бегунком, а не константой
 uint8_t bballsCOLOR[bballsMaxNUM] ;                   // прикручено при адаптации для разноцветных мячиков
@@ -1352,7 +1364,7 @@ void BBallsRoutine() {
     uint8_t bballsCOLOR[bballsMaxNUM_BALLS] ;           // прикручено при адаптации для разноцветных мячиков
     float bballsX[bballsMaxNUM_BALLS] ;               // прикручено при адаптации для распределения мячиков по радиусу лампы
     float bballsPos[bballsMaxNUM_BALLS] ;               // The integer position of the dot on the strip (LED index)
-    float bballsHi = 0.0;                                    // An array of heights
+    float bballsHi = 0.0;                                    // An array of HEIGHTs
     float bballsVImpact[bballsMaxNUM_BALLS] ;           // As time goes on the impact velocity will change, so make an array to store those values
     float bballsTCycle = 0.0;                                // The time since the last time the ball struck the ground
     float bballsCOR[bballsMaxNUM_BALLS] ;               // Coefficient of Restitution (bounce damping)
@@ -1435,9 +1447,9 @@ void fire2012again()
 #else
   #define FIRE_BASE HEIGHT/6+1
 #endif
-  uint8_t cooling = 70;
-  uint8_t sparking = 130;
-  const uint8_t fireSmoothing = 90;
+  uint8_t cooling = 130;
+  const uint8_t sparking = 80;
+  const uint8_t fireSmoothing = 150;
   // Add entropy to random number generator; we use a lot of it.
   random16_add_entropy(random(256));
 
@@ -2332,4 +2344,198 @@ void patternsRoutine() {
     dir=!dir;
     loadingFlag = true;
   }  
+}
+
+
+
+
+    static const byte SNAKE_LENGTH = 8;// здесь был @stepko 16-оригинал
+
+    CRGB colors[SNAKE_LENGTH];
+    //uint8_t initialHue;// ага
+
+    enum Direction {
+        UP, DOWN, LEFT, RIGHT
+    };
+
+    struct Pixel {
+        uint8_t x;
+        uint8_t y;
+    };
+
+    struct Snake {
+        Pixel pixels[SNAKE_LENGTH];
+
+        Direction direction;
+
+        void newDirection() {
+            switch (direction) {
+                case UP:
+                case DOWN:
+                    direction = random(0, 2) == 1 ? RIGHT : LEFT;
+                    break;
+
+                case LEFT:
+                case RIGHT:
+                    direction = random(0, 2) == 1 ? DOWN : UP;
+
+                default:
+                    break;
+            }
+        }
+
+        void shuffleDown() {
+            for (byte i = SNAKE_LENGTH - 1; i > 0; i--) {
+                pixels[i] = pixels[i - 1];
+            }
+        }
+
+        void reset() {
+            direction = UP;
+            for (int i = 0; i < SNAKE_LENGTH; i++) {
+                pixels[i].x = 0;
+                pixels[i].y = 0;
+            }
+        }
+
+        void move() {
+            switch (direction) {
+                case UP:
+                    pixels[0].y = (pixels[0].y + 1) % HEIGHT;
+                    break;
+                case LEFT:
+                    pixels[0].x = (pixels[0].x + 1) % WIDTH;
+                    break;
+                case DOWN:
+                    pixels[0].y = pixels[0].y == 0 ? HEIGHT - 1 : pixels[0].y - 1;
+                    break;
+                case RIGHT:
+                    pixels[0].x = pixels[0].x == 0 ? WIDTH - 1 : pixels[0].x - 1;
+                    break;
+            }
+        }
+
+        void draw(CRGB colors[SNAKE_LENGTH]) {
+            for (byte i = 0; i < SNAKE_LENGTH; i++) {
+                leds[XY(pixels[i].x, pixels[i].y)] = colors[i] %= (255 - i * (255 / SNAKE_LENGTH));
+            }
+        }
+    };
+
+    static const int snakeCount = 4;
+    Snake snakes[snakeCount];
+
+
+void snakePatRoutine() {
+       //FastLED.clear();
+
+        fill_palette(colors, SNAKE_LENGTH, hue++, 5, *curPalette, 255, LINEARBLEND);
+
+        for (int i = 0; i < snakeCount; i++) {
+            Snake* snake = &snakes[i];
+
+            snake->shuffleDown();
+
+            if (random(10) > 7) {
+                snake->newDirection();
+            }
+
+            snake->move();
+            snake->draw(colors);
+        }
+    };
+
+
+
+
+// parameters and buffer for the noise array
+#define NUM_LAYERS 2
+uint32_t fx[NUM_LAYERS];
+uint32_t fy[NUM_LAYERS];
+uint32_t fz[NUM_LAYERS];
+uint32_t fscale_x[NUM_LAYERS];
+uint32_t fscale_y[NUM_LAYERS];
+
+uint8_t fnoise[NUM_LAYERS][16][16];
+uint8_t fnoise2[NUM_LAYERS][16][16];
+
+uint8_t heat[256];
+
+void Fire2018_2() {
+
+  // some changing values
+  uint16_t ctrl1 = inoise16(11 * millis(), 0, 0);
+  uint16_t ctrl2 = inoise16(13 * millis(), 100000, 100000);
+  uint16_t  ctrl = ((ctrl1 + ctrl2) / 2);
+
+  // parameters for the heatmap
+  uint16_t speed = 25;
+  fx[0] = 3 * ctrl * speed;
+  fy[0] = 20 * millis() * speed;
+  fz[0] = 5 * millis() * speed ;
+  fscale_x[0] = ctrl1 / 2;
+  fscale_y[0] = ctrl2 / 2;
+
+  //calculate the noise data
+  uint8_t layer = 0;
+  for (uint8_t i = 0; i < WIDTH; i++) {
+    uint32_t ioffset = fscale_x[layer] * (i - spirocenterX);
+    for (uint8_t j = 0; j < HEIGHT; j++) {
+      uint32_t joffset = fscale_y[layer] * (j - spirocenterY);
+      uint16_t data = ((inoise16(fx[layer] + ioffset, fy[layer] + joffset, fz[layer])) + 1);
+      fnoise[layer][i][j] = data >> 8;
+    }
+  }
+
+  // parameters for te brightness mask
+  speed = 20;
+  fx[1] = 3 * ctrl * speed;
+  fy[1] = 20 * millis() * speed;
+  fz[1] = 5 * millis() * speed ;
+  fscale_x[1] = ctrl1 / 2;
+  fscale_y[1] = ctrl2 / 2;
+
+  //calculate the noise data
+  layer = 1;
+  for (uint8_t i = 0; i < WIDTH; i++) {
+    uint32_t ioffset = fscale_x[layer] * (i - spirocenterX);
+    for (uint8_t j = 0; j < HEIGHT; j++) {
+      uint32_t joffset = fscale_y[layer] * (j - spirocenterY);
+      uint16_t data = ((inoise16(fx[layer] + ioffset, fy[layer] + joffset, fz[layer])) + 1);
+      fnoise[layer][i][j] = data >> 8;
+    }
+  }
+
+  // draw lowest line - seed the fire
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    heat[XY(x, 15)] =  fnoise[0][15 - x][7];
+  }
+
+
+  //copy everything one line up
+  for (uint8_t y = 0; y < HEIGHT - 1; y++) {
+    for (uint8_t x = 0; x < WIDTH; x++) {
+      heat[XY(x, y)] = heat[XY(x, y + 1)];
+    }
+  }
+
+  //dim
+  for (uint8_t y = 0; y < HEIGHT - 1; y++) {
+    for (uint8_t x = 0; x < WIDTH; x++) {
+      uint8_t dim = fnoise[0][x][y];
+      // high value = high flames
+      dim = dim / 1.7;
+      dim = 255 - dim;
+      heat[XY(x, y)] = scale8(heat[XY(x, y)] , dim);
+    }
+  }
+
+  for (uint8_t y = 0; y < HEIGHT; y++) {
+    for (uint8_t x = 0; x < WIDTH; x++) {
+      // map the colors based on heatmap
+      leds[XY(x, y)] = CRGB( heat[XY(x, y)], 1 , 0);
+      // dim the result based on 2nd noise layer
+      leds[XY(x, y)].nscale8(fnoise[1][x][y]);
+    }
+  }
 }

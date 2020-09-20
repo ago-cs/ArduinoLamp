@@ -96,7 +96,7 @@ uint16_t getPixelNumber(uint8_t x, uint8_t y)
   return XY(x, y);
 }
 
-  // Gamma коррекция (Defalt Gamma = 2.8)
+/*  // Gamma коррекция (Defalt Gamma = 2.8)
   const uint8_t PROGMEM gammaR[] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,
@@ -192,4 +192,4 @@ uint16_t getPixelNumber(uint8_t x, uint8_t y)
   return ((uint32_t)pgm_read_byte(&gamma5[ color >> 11       ]) << 16) |
          ((uint32_t)pgm_read_byte(&gamma6[(color >> 5) & 0x3F]) <<  8) |
          pgm_read_byte(&gamma5[ color       & 0x1F]);
-  }
+  }*/

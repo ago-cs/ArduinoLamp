@@ -14,7 +14,7 @@
 #include "Constants.h"
 // ----------------- ПЕРЕМЕННЫЕ ------------------
 static const byte maxDim = max(WIDTH, HEIGHT);
-int8_t currentMode = 10;
+int8_t currentMode = 0;
 boolean loadingFlag = true;
 boolean ONflag = true;
 byte numHold;
@@ -37,11 +37,11 @@ void setup() {
   //Serial.println();
 
   if (EEPROM.read(0) == 102) {                    // если было сохранение настроек, то восстанавливаем их (с)НР
-    currentMode = EEPROM.read(1);
+    currentMode = 0;
     for (byte x = 0; x < MODE_AMOUNT; x++) {
-      modes[x].Brightness = EEPROM.read(x * 3 + 11); // (2-10 байт - резерв)
-      modes[x].Speed = EEPROM.read(x * 3 + 12);
-      modes[x].Scale = EEPROM.read(x * 3 + 13);
+      modes[0].Brightness = 255;
+      modes[0].Speed = 255;
+      modes[0].Scale = 1;
     }
 
   }

@@ -139,7 +139,7 @@ if (ONflag) {                 // если включено
     delay(1);
   }
     if (touch.hasClicks())
-  if (touch.getClicks() == 5) {      // если было пятикратное нажатие на кнопку, то производим сохранение параметров
+  /*if (touch.getClicks() == 5) {      // если было пятикратное нажатие на кнопку, то производим сохранение параметров
     if (EEPROM.read(0) != 102) EEPROM.write(0, 102);
     if (EEPROM.read(1) != currentMode) EEPROM.write(1, currentMode);  // запоминаем текущий эфект
     for (byte x = 0; x < MODE_AMOUNT; x++) {                          // сохраняем настройки всех режимов
@@ -154,7 +154,7 @@ if (ONflag) {                 // если включено
       ONflag = true;
       changePower();
     }
-  else if (touch.getClicks() == 4){      // если было четырёхкратное нажатие на кнопку, то переключаем демо
+  else*/ if (touch.getClicks() == 4){      // если было четырёхкратное нажатие на кнопку, то переключаем демо
     isDemo = !isDemo;
     DemTimer = 0UL;}
      
