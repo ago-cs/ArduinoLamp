@@ -3,7 +3,7 @@ byte ind;
 void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 6 || currentMode > 20) ? modes[currentMode].Speed : 50) ) {effTimer = millis(); switch (currentMode) {
 //|номер   |название функции эффекта     |тоже надо|
    case 0 : sparklesRoutine();             break;
-   case 1 : fireRoutine();                 break;
+   case 1 : Fire2020();                    break;
    case 3 : rainbowVertical();             break;
    case 4 : rainbowHorizontal();           break;
    case 5 : rainbowDiagonalRoutine();      break;

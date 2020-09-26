@@ -682,3 +682,20 @@ void WaveRoutine() {
         
         //blurScreen(20); // @Palpalych советует делать размытие. вот в этом эффекте его явно не хватает...
 }
+
+void Fire2020() {
+  //CRGBPalette16 myPal = firepal;
+  uint8_t speedy = map(modes[currentMode].Speed, 1, 255, 255, 0);
+  uint8_t _scale = modes[currentMode].Scale + 30;
+
+  uint32_t a = millis();
+  for (byte i = 0U; i < WIDTH; i++) {
+    for (float j = 0.; j < HEIGHT; j++) {
+      //leds[XY((LED_COLS - 1) - i, (LED_ROWS - 1) - j)] = ColorFromPalette(*curPalette/*myPal*/, qsub8(inoise8(i * scale, j * scale + a, a / speed), abs8(j - (LED_ROWS - 1)) * 255 / (LED_ROWS - 1)), 255);
+//      if(curPalette!=palettes.at(10))
+        drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(HeatColors_p/*myPal*/, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
+//      else
+//        myLamp.drawPixelXYF_Y((LED_COLS - 1) - i, (float)(LED_ROWS - 1) - j, ColorFromPalette(HeatColors2_p/*myPal*/, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (LED_ROWS - 1)) * 255 / (LED_ROWS - 1)), 255));
+    }
+  }
+}
