@@ -20,17 +20,6 @@ void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
 {
   blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
 }
-const TProgmemRGBPalette16 *palette_arr[] = {
-  &PartyColors_p,
-  &OceanColors_p,
-  &LavaColors_p,
-  &HeatColors_p,
-  &WaterfallColors_p,
-  &CloudColors_p,
-  &ForestColors_p,
-  &RainbowColors_p,
-  &RainbowStripeColors_p
-};
 
 void dimAll(uint8_t value) { 
     fadeToBlackBy (leds, NUM_LEDS, 255U - value);}
@@ -605,4 +594,91 @@ void shadowsRoutine() {
     
     nblend( leds[pixelnumber], newcolor, 64);
   }
+}
+
+// ============= ЭФФЕКТ ВОЛНЫ ===============
+// https://github.com/pixelmatix/aurora/blob/master/PatternWave.h
+// Адаптация от (c) SottNick
+
+    byte waveThetaUpdate = 0;
+    byte waveThetaUpdateFrequency = 0;
+    byte waveTheta = 0;
+
+    byte hueUpdate = 0;
+    byte hueUpdateFrequency = 0;
+//    byte hue = 0; будем использовать сдвиг от эффектов Радуга
+
+    byte waveRotation = 0;
+    uint8_t waveScale = 256 / WIDTH;
+    uint8_t waveCount = 1;
+
+void WaveRoutine() {
+    if (loadingFlag)
+    {
+      loadingFlag = false;
+      waveRotation = (modes[currentMode].Scale - 1) / 25U;
+      waveCount = modes[currentMode].Speed % 2;
+     
+    }
+ 
+        dimAll(254);
+  
+        int n = 0;
+
+        switch (waveRotation) {
+            case 0:
+                for (uint8_t x = 0; x < WIDTH; x++) {
+                    n = quadwave8(x * 2 + waveTheta) / waveScale;
+                    drawPixelXY(x, n, ColorFromPalette(RainbowColors_p, hue + x));
+                    if (waveCount != 1)
+                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(RainbowColors_p, hue + x));
+                }
+                break;
+
+            case 1:
+                for (uint8_t y = 0; y < HEIGHT; y++) {
+                    n = quadwave8(y * 2 + waveTheta) / waveScale;
+                    drawPixelXY(n, y, ColorFromPalette(RainbowColors_p, hue + y));
+                    if (waveCount != 1)
+                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(RainbowColors_p, hue + y));
+                }
+                break;
+
+            case 2:
+                for (uint8_t x = 0; x < WIDTH; x++) {
+                    n = quadwave8(x * 2 - waveTheta) / waveScale;
+                    drawPixelXY(x, n, ColorFromPalette(RainbowColors_p, hue + x));
+                    if (waveCount != 1)
+                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(RainbowColors_p, hue + x));
+                }
+                break;
+
+            case 3:
+                for (uint8_t y = 0; y < HEIGHT; y++) {
+                    n = quadwave8(y * 2 - waveTheta) / waveScale;
+                    drawPixelXY(n, y, ColorFromPalette(RainbowColors_p, hue + y));
+                    if (waveCount != 1)
+                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(RainbowColors_p, hue + y));
+                }
+                break;
+        }
+
+
+        if (waveThetaUpdate >= waveThetaUpdateFrequency) {
+            waveThetaUpdate = 0;
+            waveTheta++;
+        }
+        else {
+            waveThetaUpdate++;
+        }
+
+        if (hueUpdate >= hueUpdateFrequency) {
+            hueUpdate = 0;
+            hue++;
+        }
+        else {
+            hueUpdate++;
+        }
+        
+        //blurScreen(20); // @Palpalych советует делать размытие. вот в этом эффекте его явно не хватает...
 }

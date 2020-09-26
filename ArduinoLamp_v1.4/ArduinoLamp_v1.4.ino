@@ -50,5 +50,5 @@ void setup() {
 void loop() {
   effectsTick();
   buttonTick();
-  demo();
+  demoTick();
 }

@@ -22,6 +22,7 @@
 #define MODE_AMOUNT 27       //кол-во эффектов
 #define NUM_LEDS WIDTH * HEIGHT
 #define SEGMENTS 1            // диодов в одном "пикселе" (для создания матрицы из кусков ленты)
+#define ROTATION 1            //поворот индикатора уровней
 // ------------------- ТИПЫ --------------------
 CRGB leds[NUM_LEDS];
 GButton touch(BTN_PIN, HIGH_PULL, NORM_OPEN); //если сенсорна кнопка LOW_PULL

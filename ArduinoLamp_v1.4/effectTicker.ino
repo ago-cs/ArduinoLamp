@@ -17,17 +17,17 @@ void effectsTick() { { if (ONflag && millis() - effTimer >= ((currentMode < 6 ||
    case 13: zebraNoise();                  break;
    case 14: forestNoise();                 break;
    case 15: oceanNoise();                  break;
-   case 16: heatNoise();                   break;
-   case 17: smokeNoise();                  break;
-   case 18: colorRoutine();                break;
-   case 19: colorsRoutine();               break;
-   case 20: whiteLampRoutine();            break;
-   case 21: matrixRoutine();               break;
-   case 22: snowRoutine();                 break;
-   case 23: stormRoutine();                break;
-   case 24: ballRoutine();                 break;
-   case 25: ballsRoutine();                break;
-   case 26: MunchRoutine();                break;
+   case 16: smokeNoise();                  break;
+   case 17: colorRoutine();                break;
+   case 18: colorsRoutine();               break;
+   case 19: whiteLampRoutine();            break;
+   case 20: matrixRoutine();               break;
+   case 21: snowRoutine();                 break;
+   case 22: stormRoutine();                break;
+   case 23: ballRoutine();                 break;
+   case 24: ballsRoutine();                break;
+   case 25: MunchRoutine();                break;
+   case 26: WaveRoutine();                 break;
    //case 27: patternsRoutine();                break;
 }
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
@@ -83,7 +83,7 @@ void changePower() {    // плавное включение/выключени�
   }
 }
 
- void demo(){
+ void demoTick(){
   if (isDemo && ONflag && millis() >= DemTimer){
     if(RANDOM_DEMO)
     currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
