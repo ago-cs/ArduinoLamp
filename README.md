@@ -2,9 +2,8 @@
 
 Это облегченная версия прошивки AlexGyver под ардуино.
 (Оригинал здесь: ![Исходная версия](https://github.com/AlexGyver/GyverLamp/))
-
 Обновления от:https://github.com/Norovl/GyverLamp_for_Arduino
-
+Вся информация здесь: https://community.alexgyver.ru/threads/obsuzhdenija-proshivki-arduinolamp-i-gyverlamp-for-arduino.3590/
 ## Краткое описание:
 
 Лампа на адресных светодиодах, позволяющих получить красивые эффекты свечения:
