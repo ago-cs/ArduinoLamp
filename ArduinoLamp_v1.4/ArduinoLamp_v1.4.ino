@@ -11,6 +11,7 @@
 #include <GyverButtonOld.h>
 //-----------------            -----------------
 #include "Constants.h"
+#include "button.h"
 // ----------------- ПЕРЕМЕННЫЕ ------------------
 static const byte maxDim = max(WIDTH, HEIGHT);
 struct { byte Brightness = 10; byte Speed = 30; byte Scale = 10; } modes[MODE_AMOUNT]; //настройки эффекта по умолчанию
@@ -30,9 +31,8 @@ void setup() {
   memset8( leds, 0, NUM_LEDS * 3);
   FastLED.show();
 
-  touch.setStepTimeout(100);
-  touch.setClickTimeout(500);
-
+touch.setStepTimeout(100);
+touch.setClickTimeout(500);
   //Serial.begin(9600);
   //Serial.println();
 

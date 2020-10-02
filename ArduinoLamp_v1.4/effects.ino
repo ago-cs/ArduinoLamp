@@ -275,35 +275,31 @@ void stormRoutine()
   }
 }
 //-------------------------Блуждающий кубик-----------------------
-//#define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке//Зачем?
 int16_t coordB[2U];
 int8_t vectorB[2U];
 CRGB ballColor;
-//int8_t deltaValue; //ballSize;
 
 void ballRoutine()
 {
   if (loadingFlag)
   {
     loadingFlag = false;
-    //memset8( leds, 0, NUM_LEDS * 3);
-
+  
+  if (modes[currentMode].Scale <= 85) 
+    deltaValue = map(modes[currentMode].Scale, 1, 85, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
+  else if (modes[currentMode].Scale > 85 and modes[currentMode].Scale <= 170)
+    deltaValue = map(modes[currentMode].Scale, 170, 86, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
+  else
+    deltaValue = map(modes[currentMode].Scale, 171, 255, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
+    
     for (uint8_t i = 0U; i < 2U; i++)
     {
       coordB[i] = WIDTH / 2 * 10;
       vectorB[i] = random(8, 20);
     }
-    deltaValue = map(modes[currentMode].Scale * 2.55, 0U, 255U, 2U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 2));
     ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-//    _pulse_color = CHSV(random(0, 9) * 28, 255U, 255U);
   }
 
-//  if (!(modes[currentMode].Scale & 0x01))
-//  {
-//    hue += (modes[currentMode].Scale - 1U) % 11U * 8U + 1U;
-
-//    ballColor = CHSV(hue, 255U, 255U);
-//  }
  
   if ((modes[currentMode].Scale & 0x01))
     for (uint8_t i = 0U; i < deltaValue; i++)
@@ -317,30 +313,32 @@ void ballRoutine()
     {
       coordB[i] = 0;
       vectorB[i] = -vectorB[i];
-      /*if (RANDOM_COLOR)*/ ballColor = CHSV(random(0, 9) * 28, 255U, 255U); // if (RANDOM_COLOR && (modes[currentMode].Scale & 0x01))
-      //vectorB[i] += random(0, 6) - 3;
+       ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+ 
     }
   }
   if (coordB[0U] > (int16_t)((WIDTH - deltaValue) * 10))
   {
     coordB[0U] = (WIDTH - deltaValue) * 10;
     vectorB[0U] = -vectorB[0U];
-    /*if (RANDOM_COLOR)*/ ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-    //vectorB[0] += random(0, 6) - 3;
+    ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+
   }
   if (coordB[1U] > (int16_t)((HEIGHT - deltaValue) * 10))
   {
     coordB[1U] = (HEIGHT - deltaValue) * 10;
     vectorB[1U] = -vectorB[1U];
-    /*if (RANDOM_COLOR)*/ ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-    //vectorB[1] += random(0, 6) - 3;
+      ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+
   }
   
-//  if (modes[currentMode].Scale & 0x01)
-//    dimAll(135U);
-//    dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 24U);
-//  else
+if (modes[currentMode].Scale <= 85)  // при масштабе до 85 выводим кубик без шлейфа
     memset8( leds, 0, NUM_LEDS * 3);
+  else if (modes[currentMode].Scale > 85 and modes[currentMode].Scale <= 170)
+    fadeToBlackBy(leds, NUM_LEDS, 255 - (10 * (modes[currentMode].Speed) /255) + 30); // выводим кубик со шлейфом, длинна которого зависит от скорости.
+  else
+    fadeToBlackBy(leds, NUM_LEDS, 255 - (10 * (modes[currentMode].Speed) /255) + 15); // выводим кубик с длинным шлейфом, длинна которого зависит от скорости.
+
      
   for (uint8_t i = 0U; i < deltaValue; i++)
     for (uint8_t j = 0U; j < deltaValue; j++)
